@@ -1,25 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import NextLink from "next/link";
 import {
-    Plus,
-    Search,
-    FileText,
-    MoreVertical,
+    Box,
+    Button,
+    Card,
+    Flex,
     Grid,
-    List as ListIcon,
-    Calendar
-} from "lucide-react";
-import {
+    Heading,
+    Text,
+    TextField,
     DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+    IconButton,
+    SegmentedControl,
+    Spinner,
+    Link
+} from "@radix-ui/themes";
+import {
+    PlusIcon,
+    MagnifyingGlassIcon,
+    FileTextIcon,
+    DotsVerticalIcon,
+    GridIcon,
+    RowsIcon,
+    CalendarIcon
+} from "@radix-ui/react-icons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api/v1";
 
@@ -45,7 +51,7 @@ export function ProjectsList() {
         })
             .then((res) => res.json())
             .then((data) => {
-                setProjects(data);
+                setProjects(Array.isArray(data) ? data : []);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
@@ -53,92 +59,95 @@ export function ProjectsList() {
 
     const filteredProjects = projects.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        (p.description || "").toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
-                    <p className="text-muted-foreground">Manage your research workspaces and papers.</p>
-                </div>
-                <Link href="/dashboard?view=projects_new">
-                    <Button className="btn-primary hover-lift">
-                        <Plus className="w-4 h-4 mr-2" />
-                        New Project
+        <Flex direction="column" gap="6">
+            <Flex direction={{ initial: "column", sm: "row" }} justify="between" align={{ initial: "start", sm: "center" }} gap="4">
+                <Box>
+                    <Heading size="6" weight="bold">Projects</Heading>
+                    <Text color="gray" size="2">Manage your research workspaces and papers.</Text>
+                </Box>
+                <NextLink href="/dashboard?view=projects_new" passHref legacyBehavior>
+                    <Button size="3" asChild style={{ cursor: 'pointer' }}>
+                        <Link style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <PlusIcon /> New Project
+                        </Link>
                     </Button>
-                </Link>
-            </div>
+                </NextLink>
+            </Flex>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 py-2">
-                <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
+            <Flex direction={{ initial: "column", sm: "row" }} align="center" gap="4">
+                <Box style={{ flexGrow: 1 }} width="100%">
+                    <TextField.Root
                         placeholder="Search projects..."
-                        className="pl-10 h-10 w-full"
+                        size="3"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-                <div className="flex items-center gap-2 border bg-muted/50 p-1 rounded-lg">
-                    <Button
-                        variant={viewMode === "grid" ? "secondary" : "ghost"}
-                        size="sm"
-                        className="h-8 px-2"
-                        onClick={() => setViewMode("grid")}
                     >
-                        <Grid className="w-4 h-4" />
-                    </Button>
-                    <Button
-                        variant={viewMode === "list" ? "secondary" : "ghost"}
-                        size="sm"
-                        className="h-8 px-2"
-                        onClick={() => setViewMode("list")}
-                    >
-                        <ListIcon className="w-4 h-4" />
-                    </Button>
-                </div>
-            </div>
+                        <TextField.Slot>
+                            <MagnifyingGlassIcon />
+                        </TextField.Slot>
+                    </TextField.Root>
+                </Box>
+                <SegmentedControl.Root size="3" value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
+                    <SegmentedControl.Item value="grid">
+                        <GridIcon />
+                    </SegmentedControl.Item>
+                    <SegmentedControl.Item value="list">
+                        <RowsIcon />
+                    </SegmentedControl.Item>
+                </SegmentedControl.Root>
+            </Flex>
 
             {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div key={i} className="h-48 rounded-xl bg-muted animate-pulse" />
+                        <Card key={i} size="3" style={{ height: "160px" }}>
+                            <Flex align="center" justify="center" height="100%">
+                                <Spinner />
+                            </Flex>
+                        </Card>
                     ))}
-                </div>
+                </Grid>
             ) : filteredProjects.length > 0 ? (
                 viewMode === "grid" ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="6">
                         {filteredProjects.map((project) => (
                             <ProjectGridItem key={project.id} project={project} />
                         ))}
-                    </div>
+                    </Grid>
                 ) : (
-                    <div className="border rounded-xl divide-y overflow-hidden">
-                        {filteredProjects.map((project) => (
-                            <ProjectListItem key={project.id} project={project} />
+                    <Box style={{ border: "1px solid var(--gray-5)", borderRadius: "var(--radius-3)", overflow: "hidden" }}>
+                        {filteredProjects.map((project, i) => (
+                            <ProjectListItem key={project.id} project={project} isLast={i === filteredProjects.length - 1} />
                         ))}
-                    </div>
+                    </Box>
                 )
             ) : (
-                <Card className="flex flex-col items-center justify-center p-12 text-center">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 text-muted-foreground">
-                        <FileText className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl font-semibold">No projects found</h3>
-                    <p className="text-muted-foreground mb-6 max-w-xs">
-                        {searchQuery ? `No projects matching "${searchQuery}"` : "Create your first project to organize your research papers."}
-                    </p>
-                    <Link href="/dashboard/projects/new">
-                        <Button variant="outline">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create your first project
-                        </Button>
-                    </Link>
+                <Card size="4">
+                    <Flex direction="column" align="center" justify="center" p="9" gap="4">
+                        <IconButton size="4" variant="soft" radius="full">
+                            <FileTextIcon width="32" height="32" />
+                        </IconButton>
+                        <Heading size="4" align="center">No projects found</Heading>
+                        <Box maxWidth="300px">
+                            <Text color="gray" size="2" align="center" style={{ display: "block" }}>
+                                {searchQuery ? `No projects matching "${searchQuery}"` : "Create your first project to organize your research papers."}
+                            </Text>
+                        </Box>
+                        <NextLink href="/dashboard?view=projects_new" passHref legacyBehavior>
+                            <Button variant="outline" asChild style={{ cursor: 'pointer' }}>
+                                <Link style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    <PlusIcon /> Create your first project
+                                </Link>
+                            </Button>
+                        </NextLink>
+                    </Flex>
                 </Card>
             )}
-        </div>
+        </Flex>
     );
 }
 
@@ -146,81 +155,89 @@ function ProjectGridItem({ project }: { project: Project }) {
     const date = new Date(project.created_at).toLocaleDateString();
 
     return (
-        <Card className="group hover-lift transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
-            <div className="p-6 flex flex-col h-full">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                        <FileText className="w-6 h-6" />
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="w-4 h-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="cursor-pointer">Edit Project</DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer text-red-600">Delete Project</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                <div className="flex-1">
-                    <Link href={`/dashboard/project/${project.id}`}>
-                        <h3 className="text-lg font-bold group-hover:text-primary transition-colors">
-                            {project.name}
-                        </h3>
-                    </Link>
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+        <Card size="3" className="hover-lift">
+            <Flex direction="column" gap="4" height="100%">
+                <Flex justify="between" align="start">
+                    <IconButton size="3" variant="soft" radius="medium">
+                        <FileTextIcon width="24" height="24" />
+                    </IconButton>
+                    <DropdownMenu.Root>
+                        <DropdownMenu.Trigger>
+                            <IconButton variant="ghost" size="2" radius="full">
+                                <DotsVerticalIcon />
+                            </IconButton>
+                        </DropdownMenu.Trigger>
+                        <DropdownMenu.Content variant="soft">
+                            <DropdownMenu.Item>Edit Project</DropdownMenu.Item>
+                            <DropdownMenu.Separator />
+                            <DropdownMenu.Item color="red">Delete Project</DropdownMenu.Item>
+                        </DropdownMenu.Content>
+                    </DropdownMenu.Root>
+                </Flex>
+
+                <Box style={{ flexGrow: 1 }}>
+                    <NextLink href={`/dashboard/project/${project.id}`} passHref legacyBehavior>
+                        <Link style={{ textDecoration: "none", color: "inherit" }}>
+                            <Heading size="4" mb="2" className="hover:text-accent-11 transition-colors">
+                                {project.name}
+                            </Heading>
+                        </Link>
+                    </NextLink>
+                    <Text size="2" color="gray" className="line-clamp-2">
                         {project.description || "No description provided for this work space."}
-                    </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between text-muted-foreground">
-                    <div className="flex items-center text-xs">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {date}
-                    </div>
-                    <Link href={`/dashboard/project/${project.id}`} className="text-xs font-semibold hover:underline">
-                        Open Project
-                    </Link>
-                </div>
-            </div>
+                    </Text>
+                </Box>
+
+                <Flex align="center" justify="between" pt="4" style={{ borderTop: "1px solid var(--gray-5)" }}>
+                    <Flex align="center" gap="1">
+                        <CalendarIcon style={{ color: "var(--gray-9)" }} />
+                        <Text size="1" color="gray">{date}</Text>
+                    </Flex>
+                    <NextLink href={`/dashboard/project/${project.id}`} passHref legacyBehavior>
+                        <Link style={{ textDecoration: "none" }}>
+                            <Text size="1" weight="bold" className="hover:underline">Open Project</Text>
+                        </Link>
+                    </NextLink>
+                </Flex>
+            </Flex>
         </Card>
     );
 }
 
-function ProjectListItem({ project }: { project: Project }) {
+function ProjectListItem({ project, isLast }: { project: Project, isLast: boolean }) {
     const date = new Date(project.created_at).toLocaleDateString();
 
     return (
-        <div className="p-4 flex items-center gap-4 hover:bg-muted/50 transition-colors group">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                <FileText className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-                <Link href={`/dashboard/project/${project.id}`}>
-                    <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
-                        {project.name}
-                    </h3>
-                </Link>
-                <p className="text-xs text-muted-foreground truncate max-w-md">
-                    {project.description || "No description provided"}
-                </p>
-            </div>
-            <div className="hidden md:flex flex-col items-end text-xs text-muted-foreground pr-4">
-                <span className="font-medium">Created</span>
-                <span>{date}</span>
-            </div>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="w-4 h-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem className="cursor-pointer">Edit</DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer text-red-600">Delete</DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
+        <Box p="4" style={{ borderBottom: isLast ? "none" : "1px solid var(--gray-5)" }} className="hover:bg-gray-2 transition-colors">
+            <Flex align="center" gap="4">
+                <IconButton size="4" variant="soft" radius="medium">
+                    <FileTextIcon width="24" height="24" />
+                </IconButton>
+                <Box style={{ flexGrow: 1 }}>
+                    <NextLink href={`/dashboard/project/${project.id}`} passHref legacyBehavior>
+                        <Link style={{ textDecoration: "none", color: "inherit" }}>
+                            <Heading size="3" mb="1" className="hover:text-accent-11 transition-colors">{project.name}</Heading>
+                        </Link>
+                    </NextLink>
+                    <Text size="1" color="gray" className="truncate">{project.description || "No description provided"}</Text>
+                </Box>
+                <Flex direction="column" align="end" className="hidden md:flex">
+                    <Text size="1" weight="bold" color="gray">Created</Text>
+                    <Text size="1" color="gray">{date}</Text>
+                </Flex>
+                <DropdownMenu.Root>
+                    <DropdownMenu.Trigger>
+                        <IconButton variant="ghost" size="2" radius="full">
+                            <DotsVerticalIcon />
+                        </IconButton>
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Content variant="soft">
+                        <DropdownMenu.Item>Edit</DropdownMenu.Item>
+                        <DropdownMenu.Separator />
+                        <DropdownMenu.Item color="red">Delete</DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                </DropdownMenu.Root>
+            </Flex>
+        </Box>
     );
 }

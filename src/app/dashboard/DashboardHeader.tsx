@@ -1,39 +1,69 @@
 "use client";
 
-import { ThemePicker } from "@/components/theme-picker";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { UserNav } from "./UserNav";
-import { Bell, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { usePathname } from "next/navigation";
+import { BellIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { TextField, Flex, IconButton, Box, Heading } from "@radix-ui/themes";
+import { useSearchParams } from "next/navigation";
 
 export function DashboardHeader() {
-    const pathname = usePathname();
-    const pageName = pathname.split("/").pop() || "Overview";
-    const formattedPageName = pageName.charAt(0).toUpperCase() + pageName.slice(1);
+    const searchParams = useSearchParams();
+    const currentView = searchParams.get("view") || "overview";
+
+    const viewTitles: Record<string, string> = {
+        overview: "Dashboard Overview",
+        projects: "My Projects",
+        recent: "Recent Activity",
+        upload: "Upload Research",
+        chat: "AI Research Assistant",
+        settings: "Account Settings",
+    };
 
     return (
-        <header className="h-16 border-b border-border/50 bg-background/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-8">
-            <div className="flex items-center gap-8 flex-1">
-                <h2 className="font-bold text-lg hidden md:block capitalize">{formattedPageName}</h2>
-                <div className="relative max-w-sm w-full hidden lg:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
+        <header className="h-16 border-b sticky top-0 z-40 flex items-center justify-between px-8"
+            style={{
+                backgroundColor: "var(--color-background)",
+                borderColor: "var(--gray-5)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)"
+            }}>
+            <Flex align="center" gap="8" style={{ flexGrow: 1 }}>
+                <Heading size="4" weight="bold" highContrast className="hidden md:block">
+                    {viewTitles[currentView] || "Dashboard"}
+                </Heading>
+                <Box maxWidth="400px" width="100%" className="hidden lg:block">
+                    <TextField.Root
                         placeholder="Global research search..."
-                        className="pl-10 h-9 bg-muted/40 border-none focus-visible:ring-1"
-                    />
-                </div>
-            </div>
+                        size="2"
+                    >
+                        <TextField.Slot>
+                            <MagnifyingGlassIcon />
+                        </TextField.Slot>
+                    </TextField.Root>
+                </Box>
+            </Flex>
 
-            <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 border-r border-border/50 pr-4 mr-2">
-                    <ThemePicker />
-                    <button className="p-2 hover:bg-accent hover:text-accent-foreground rounded-full relative transition-all duration-200 hover-lift active:scale-95">
-                        <Bell className="w-5 h-5 text-muted-foreground" />
-                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background shadow-sm" />
-                    </button>
-                </div>
+            <Flex align="center" gap="4">
+                <Flex align="center" gap="2" pr="4" mr="2" style={{ borderRight: "1px solid var(--gray-5)" }}>
+                    <ThemeToggle />
+                    <IconButton variant="ghost" radius="full" style={{ position: "relative" }}>
+                        <BellIcon width="20" height="20" />
+                        <Box
+                            style={{
+                                position: "absolute",
+                                top: "0",
+                                right: "0",
+                                width: "8px",
+                                height: "8px",
+                                backgroundColor: "var(--accent-9)",
+                                borderRadius: "var(--radius-full)",
+                                border: "2px solid var(--color-background)"
+                            }}
+                        />
+                    </IconButton>
+                </Flex>
                 <UserNav />
-            </div>
+            </Flex>
         </header>
     );
 }

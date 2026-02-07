@@ -3,17 +3,19 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
+    Avatar,
     DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { User, LogOut, Settings as SettingsIcon, Shield } from "lucide-react";
+    IconButton,
+    Text,
+    Flex,
+    Box
+} from "@radix-ui/themes";
+import {
+    PersonIcon,
+    ExitIcon,
+    GearIcon
+} from "@radix-ui/react-icons";
 
-// Assuming API_URL is needed for /me call if we were doing it here
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api/v1";
 
 export function UserNav() {
@@ -24,7 +26,6 @@ export function UserNav() {
         const email = localStorage.getItem("user_email");
         setUserEmail(email);
 
-        // Optional: Fetch fresh user data from /me
         const token = localStorage.getItem("access_token");
         if (token) {
             fetch(`${API_URL}/me`, {
@@ -48,34 +49,40 @@ export function UserNav() {
     };
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-2 ring-primary/10 hover:ring-primary/20 transition-all p-0 overflow-hidden hover-lift">
-                    <div className="w-full h-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold text-sm shadow-inner uppercase">
-                        {userEmail ? userEmail[0] : <User className="w-4 h-4" />}
-                    </div>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mt-2 rounded-xl" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">Researcher</p>
-                        <p className="text-xs leading-none text-muted-foreground truncate max-w-[180px]">
-                            {userEmail || "loading..."}
-                        </p>
-                    </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer gap-2 py-2" onClick={() => router.push("/dashboard?view=settings")}>
-                    <User className="w-4 h-4" />
-                    <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer gap-2 py-2 text-red-600 focus:text-red-600" onClick={handleLogout}>
-                    <LogOut className="w-4 h-4" />
-                    <span>Log out</span>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+                <IconButton variant="ghost" radius="full" size="2">
+                    <Avatar
+                        size="2"
+                        fallback={userEmail ? userEmail[0].toUpperCase() : "U"}
+                        radius="full"
+                        color="indigo"
+                        variant="soft"
+                    />
+                </IconButton>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end" variant="soft" size="2">
+                <Box px="3" py="2">
+                    <Text size="1" weight="bold" highContrast style={{ display: "block" }}>Researcher</Text>
+                    <Text size="1" color="gray" className="truncate max-w-[180px]" style={{ display: "block" }}>
+                        {userEmail || "loading..."}
+                    </Text>
+                </Box>
+                <DropdownMenu.Separator />
+                <DropdownMenu.Item onClick={() => router.push("/dashboard?view=settings")}>
+                    <Flex align="center" gap="2">
+                        <GearIcon />
+                        <Text size="2">Settings</Text>
+                    </Flex>
+                </DropdownMenu.Item>
+                <DropdownMenu.Separator />
+                <DropdownMenu.Item color="red" onClick={handleLogout}>
+                    <Flex align="center" gap="2">
+                        <ExitIcon />
+                        <Text size="2">Log out</Text>
+                    </Flex>
+                </DropdownMenu.Item>
+            </DropdownMenu.Content>
+        </DropdownMenu.Root >
     );
 }

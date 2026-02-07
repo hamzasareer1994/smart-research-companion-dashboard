@@ -1,18 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
-    Clock,
-    FileText,
-    MessageSquare,
-    Search as SearchIcon,
-    ArrowRight,
-    Search
-} from "lucide-react";
-import Link from "next/link";
-import { Input } from "@/components/ui/input";
+    Box,
+    Button,
+    Card,
+    Flex,
+    Heading,
+    Text,
+    TextField,
+    IconButton,
+    Badge,
+    Callout
+} from "@radix-ui/themes";
+import {
+    ClockIcon,
+    FileTextIcon,
+    ChatBubbleIcon,
+    MagnifyingGlassIcon,
+    ArrowRightIcon,
+    InfoCircledIcon
+} from "@radix-ui/react-icons";
+import NextLink from "next/link";
 
 // Mock data for UI/UX
 const MOCK_ACTIVITY = [
@@ -43,71 +52,93 @@ export function RecentActivity() {
     const [searchQuery, setSearchQuery] = useState("");
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight">Recent Activity</h1>
-                <p className="text-muted-foreground">Keep track of your latest research steps and discussions.</p>
-            </div>
+        <Flex direction="column" gap="6">
+            <Box>
+                <Heading size="6" weight="bold">Recent Activity</Heading>
+                <Text color="gray" size="2">Keep track of your latest research steps and discussions.</Text>
+            </Box>
 
-            <div className="flex items-center gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search activity logs..."
-                        className="pl-10"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-            </div>
+            <Callout.Root color="indigo" variant="soft">
+                <Callout.Icon>
+                    <InfoCircledIcon />
+                </Callout.Icon>
+                <Callout.Text>
+                    This is a consolidated view of all activities across your research projects.
+                </Callout.Text>
+            </Callout.Root>
 
-            <div className="space-y-4">
+            <Box>
+                <TextField.Root
+                    placeholder="Search activity logs..."
+                    size="3"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                >
+                    <TextField.Slot>
+                        <MagnifyingGlassIcon />
+                    </TextField.Slot>
+                </TextField.Root>
+            </Box>
+
+            <Flex direction="column" gap="4">
                 {MOCK_ACTIVITY.map((activity) => (
-                    <Card key={activity.id} className="p-4 bg-card/40 hover-lift backdrop-blur-sm transition-all group">
-                        <div className="flex items-center gap-4">
+                    <Card key={activity.id} size="2" className="hover-lift">
+                        <Flex align="center" gap="4">
                             <ActivityIcon type={activity.type} />
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2">
-                                    <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
+                            <Box style={{ flexGrow: 1 }}>
+                                <Flex justify="between" align="center" gap="2">
+                                    <Heading size="3" className="truncate hover:text-accent-11 transition-colors">
                                         {activity.title}
-                                    </h3>
-                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                    </Heading>
+                                    <Text size="1" color="gray" className="whitespace-nowrap">
                                         {activity.timestamp}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-xs bg-muted px-2 py-0.5 rounded-full font-medium">
+                                    </Text>
+                                </Flex>
+                                <Flex align="center" gap="2" mt="1">
+                                    <Badge variant="soft" color="gray" size="1">
                                         {activity.project}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground flex items-center">
+                                    </Badge>
+                                    <Text size="1" color="gray">
                                         <ActivityTypeText type={activity.type} />
-                                    </span>
-                                </div>
-                            </div>
-                            <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                <ArrowRight className="w-4 h-4 text-primary" />
-                            </Button>
-                        </div>
+                                    </Text>
+                                </Flex>
+                            </Box>
+                            <NextLink href="/dashboard" passHref legacyBehavior>
+                                <Button variant="ghost" size="2" radius="full" asChild>
+                                    <NextLink href="/dashboard">
+                                        <ArrowRightIcon />
+                                    </NextLink>
+                                </Button>
+                            </NextLink>
+                        </Flex>
                     </Card>
                 ))}
-            </div>
+            </Flex>
 
-            <div className="pt-8 text-center border-t border-border/50">
-                <p className="text-sm text-muted-foreground mb-4">You've reached the end of your recent activity.</p>
-                <Link href="/dashboard">
-                    <Button variant="outline">Back to Dashboard Home</Button>
-                </Link>
-            </div>
-        </div>
+            <Box pt="6" style={{ borderTop: "1px solid var(--gray-5)" }}>
+                <Text size="2" color="gray" mb="4" align="center" style={{ display: "block" }}>You&apos;ve reached the end of your recent activity.</Text>
+                <Flex justify="center">
+                    <NextLink href="/dashboard" passHref legacyBehavior>
+                        <Button variant="outline" asChild>
+                            <NextLink href="/dashboard">Back to Dashboard Home</NextLink>
+                        </Button>
+                    </NextLink>
+                </Flex>
+            </Box>
+        </Flex>
     );
 }
 
 function ActivityIcon({ type }: { type: string }) {
     switch (type) {
-        case "upload": return <div className="p-2 rounded-lg bg-primary/10 text-primary"><FileText className="w-5 h-5" /></div>;
-        case "chat": return <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"><MessageSquare className="w-5 h-5" /></div>;
-        case "search": return <div className="p-2 rounded-lg bg-accent/20 text-accent-foreground border border-accent/20"><SearchIcon className="w-5 h-5" /></div>;
-        default: return <div className="p-2 rounded-lg bg-muted text-muted-foreground"><Clock className="w-5 h-5" /></div>;
+        case "upload":
+            return <IconButton variant="soft" color="blue" size="3" radius="medium"><FileTextIcon /></IconButton>;
+        case "chat":
+            return <IconButton variant="soft" color="green" size="3" radius="medium"><ChatBubbleIcon /></IconButton>;
+        case "search":
+            return <IconButton variant="soft" color="indigo" size="3" radius="medium"><MagnifyingGlassIcon /></IconButton>;
+        default:
+            return <IconButton variant="soft" color="gray" size="3" radius="medium"><ClockIcon /></IconButton>;
     }
 }
 

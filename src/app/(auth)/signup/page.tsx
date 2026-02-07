@@ -1,11 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import {
+    Box,
+    Button,
+    Card,
+    Flex,
+    Heading,
+    Text,
+    TextField,
+    Callout,
+    Spinner,
+    IconButton,
+    Link
+} from "@radix-ui/themes";
+import {
+    EyeOpenIcon,
+    EyeNoneIcon,
+    ExclamationTriangleIcon,
+    EnvelopeClosedIcon,
+    LockClosedIcon
+} from "@radix-ui/react-icons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001/api/v1";
 
@@ -47,7 +64,6 @@ export default function SignupPage() {
                 throw new Error(data.detail || "Signup failed");
             }
 
-            // Store token if returned, otherwise redirect to login
             if (data.access_token) {
                 localStorage.setItem("access_token", data.access_token);
                 router.push("/dashboard");
@@ -62,88 +78,107 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="w-full max-w-md mx-4">
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-2xl">
-                <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-white mb-2">Create your account</h1>
-                    <p className="text-zinc-400 text-sm">Start your research journey today</p>
-                </div>
+        <Box width="100%" maxWidth="400px" px="4">
+            <Card size="4">
+                <Flex direction="column" gap="4">
+                    <Box mb="4">
+                        <Heading size="6" mb="1" align="center">Create your account</Heading>
+                        <Text size="2" color="gray" align="center" style={{ display: "block" }}>Start your research journey today</Text>
+                    </Box>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm text-zinc-300 mb-2">Email</label>
-                        <Input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="you@university.edu"
-                            className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-blue-500"
-                            required
-                        />
-                    </div>
+                    <form onSubmit={handleSubmit}>
+                        <Flex direction="column" gap="4">
+                            <Box>
+                                <Text as="label" size="2" weight="bold" mb="2" style={{ display: "block" }}>
+                                    Email
+                                </Text>
+                                <TextField.Root
+                                    type="email"
+                                    size="3"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="you@university.edu"
+                                    required
+                                >
+                                    <TextField.Slot>
+                                        <EnvelopeClosedIcon />
+                                    </TextField.Slot>
+                                </TextField.Root>
+                            </Box>
 
-                    <div>
-                        <label className="block text-sm text-zinc-300 mb-2">Password</label>
-                        <div className="relative">
-                            <Input
-                                type={showPassword ? "text" : "password"}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="At least 6 characters"
-                                className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-blue-500 pr-10"
-                                required
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
-                            >
-                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                        </div>
-                    </div>
+                            <Box>
+                                <Text as="label" size="2" weight="bold" mb="2" style={{ display: "block" }}>
+                                    Password
+                                </Text>
+                                <TextField.Root
+                                    type={showPassword ? "text" : "password"}
+                                    size="3"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="At least 6 characters"
+                                    required
+                                >
+                                    <TextField.Slot>
+                                        <LockClosedIcon />
+                                    </TextField.Slot>
+                                    <TextField.Slot side="right">
+                                        <IconButton
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <EyeNoneIcon /> : <EyeOpenIcon />}
+                                        </IconButton>
+                                    </TextField.Slot>
+                                </TextField.Root>
+                            </Box>
 
-                    <div>
-                        <label className="block text-sm text-zinc-300 mb-2">Confirm Password</label>
-                        <Input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Confirm your password"
-                            className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-blue-500"
-                            required
-                        />
-                    </div>
+                            <Box>
+                                <Text as="label" size="2" weight="bold" mb="2" style={{ display: "block" }}>
+                                    Confirm Password
+                                </Text>
+                                <TextField.Root
+                                    type="password"
+                                    size="3"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Confirm your password"
+                                    required
+                                >
+                                    <TextField.Slot>
+                                        <LockClosedIcon />
+                                    </TextField.Slot>
+                                </TextField.Root>
+                            </Box>
 
-                    {error && (
-                        <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                            {error}
-                        </div>
-                    )}
+                            {error && (
+                                <Callout.Root color="red" variant="soft">
+                                    <Callout.Icon>
+                                        <ExclamationTriangleIcon />
+                                    </Callout.Icon>
+                                    <Callout.Text>{error}</Callout.Text>
+                                </Callout.Root>
+                            )}
 
-                    <Button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
-                    >
-                        {loading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Creating account...
-                            </>
-                        ) : (
-                            "Create account"
-                        )}
-                    </Button>
-                </form>
+                            <Button type="submit" size="3" disabled={loading}>
+                                {loading && <Spinner />}
+                                Create account
+                            </Button>
+                        </Flex>
+                    </form>
 
-                <div className="mt-6 text-center text-sm text-zinc-400">
-                    Already have an account?{" "}
-                    <Link href="/login" className="text-blue-400 hover:text-blue-300">
-                        Sign in
-                    </Link>
-                </div>
-            </div>
-        </div>
+                    <Box mt="4">
+                        <Text size="2" color="gray" align="center" style={{ display: "block" }}>
+                            Already have an account?{" "}
+                            <NextLink href="/login" passHref legacyBehavior>
+                                <Link weight="bold">
+                                    Sign in
+                                </Link>
+                            </NextLink>
+                        </Text>
+                    </Box>
+                </Flex>
+            </Card>
+        </Box>
     );
 }

@@ -1,21 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import {
-    Send,
-    Sparkles,
-    FileText,
-    User,
-    Bot,
-    PlusCircle,
-    RotateCcw,
-    Bookmark,
-    MoreVertical
-} from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+    Box,
+    Button,
+    Card,
+    Flex,
+    Heading,
+    Text,
+    TextField,
+    IconButton,
+    ScrollArea,
+    Avatar,
+    Callout
+} from "@radix-ui/themes";
+import {
+    PaperPlaneIcon,
+    MagicWandIcon,
+    FileTextIcon,
+    PersonIcon,
+    PlusCircledIcon,
+    ResetIcon,
+    BookmarkIcon,
+    DotsVerticalIcon,
+    InfoCircledIcon
+} from "@radix-ui/react-icons";
+
+// Custom Bot Icon since Radix doesn't have a direct equivalent
+const BotIcon = () => (
+    <MagicWandIcon width="18" height="18" />
+);
 
 const MOCK_CHAT = [
     { role: 'assistant', content: 'Hello! I am your research companion. Which papers should we analyze today?' },
@@ -42,105 +56,140 @@ export function ChatInterface() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-160px)] gap-6">
+        <Flex gap="6" height="calc(100vh - 180px)">
             {/* Sidebar Context */}
-            <div className="hidden lg:flex w-72 flex-col gap-4">
-                <div className="font-bold flex items-center gap-2 mb-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    Research Context
-                </div>
-                <ScrollArea className="flex-1 pr-4">
-                    <div className="space-y-3">
-                        <Card className="p-3 bg-card/40 border-none cursor-pointer hover:bg-muted/60 transition-colors hover-lift">
-                            <div className="flex items-center gap-2 mb-1">
-                                <FileText className="w-4 h-4 text-primary" />
-                                <span className="text-sm font-semibold truncate">Attention Is All You Need.pdf</span>
-                            </div>
-                            <p className="text-xs text-muted-foreground line-clamp-2">Main source for NLP concepts.</p>
+            <Flex direction="column" gap="4" width="280px" className="hidden lg:flex">
+                <Flex align="center" gap="2" mb="2">
+                    <MagicWandIcon style={{ color: "var(--accent-9)" }} />
+                    <Heading size="3" weight="bold">Research Context</Heading>
+                </Flex>
+                <ScrollArea scrollbars="vertical" style={{ flexGrow: 1, height: "100%" }}>
+                    <Flex direction="column" gap="3" pr="4">
+                        <Card size="2" style={{ cursor: "pointer" }} className="hover-lift">
+                            <Flex align="center" gap="2" mb="1">
+                                <FileTextIcon style={{ color: "var(--accent-9)" }} />
+                                <Text size="2" weight="bold" className="truncate">Attention Is All You Need.pdf</Text>
+                            </Flex>
+                            <Text size="1" color="gray" className="line-clamp-2">Main source for NLP concepts.</Text>
                         </Card>
-                        <Card className="p-3 bg-card/40 border-none cursor-pointer hover:bg-muted/60 transition-colors hover-lift">
-                            <div className="flex items-center gap-2 mb-1">
-                                <FileText className="w-4 h-4 text-primary" />
-                                <span className="text-sm font-semibold truncate">GPT-4 Technical Report.pdf</span>
-                            </div>
+                        <Card size="2" style={{ cursor: "pointer" }} className="hover-lift">
+                            <Flex align="center" gap="2" mb="1">
+                                <FileTextIcon style={{ color: "var(--accent-9)" }} />
+                                <Text size="2" weight="bold" className="truncate">GPT-4 Technical Report.pdf</Text>
+                            </Flex>
                         </Card>
-                        <Button variant="ghost" className="w-full justify-start text-xs border border-dashed border-border hover:border-primary/50" size="sm">
-                            <PlusCircle className="w-3 h-3 mr-2" /> Add Papers to Context
+                        <Button variant="ghost" size="2" style={{ border: "1px dashed var(--gray-5)" }}>
+                            <PlusCircledIcon /> Add Papers to Context
                         </Button>
-                    </div>
+                    </Flex>
                 </ScrollArea>
-                <Card className="p-4 bg-primary/5 border-primary/10">
-                    <p className="text-xs font-semibold text-primary mb-2">Model Status</p>
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground">Milvus Connected</span>
-                    </div>
+                <Card size="2" variant="surface" style={{ backgroundColor: "var(--accent-2)" }}>
+                    <Text size="1" weight="bold" color="indigo" mb="2" style={{ display: "block" }}>Model Status</Text>
+                    <Flex align="center" gap="2">
+                        <Box width="8px" height="8px" style={{ backgroundColor: "var(--accent-9)", borderRadius: "var(--radius-full)" }} className="animate-pulse" />
+                        <Text size="1" weight="bold" color="gray" style={{ textTransform: "uppercase" }}>Milvus Connected</Text>
+                    </Flex>
                 </Card>
-            </div>
+            </Flex>
 
             {/* Main Chat Area */}
-            <Card className="flex-1 flex flex-col glass shadow-xl overflow-hidden rounded-2xl">
-                {/* Chat Header */}
-                <div className="p-4 border-b border-border/50 flex justify-between items-center bg-muted/30">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
-                            <Bot className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h2 className="font-bold">Research Assistant</h2>
-                            <p className="text-[10px] text-primary font-bold uppercase tracking-wider">Online</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover-lift"><RotateCcw className="w-4 h-4 text-muted-foreground" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover-lift"><Bookmark className="w-4 h-4 text-muted-foreground" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover-lift"><MoreVertical className="w-4 h-4 text-muted-foreground" /></Button>
-                    </div>
-                </div>
+            <Card size="3" style={{ flexGrow: 1, padding: 0, height: "100%" }} className="flex flex-col overflow-hidden">
+                <Flex direction="column" height="100%">
+                    {/* Chat Header */}
+                    <Flex align="center" justify="between" p="4" style={{ borderBottom: "1px solid var(--gray-5)", backgroundColor: "var(--gray-2)" }}>
+                        <Flex align="center" gap="3">
+                            <Avatar
+                                size="3"
+                                fallback={<BotIcon />}
+                                color="indigo"
+                                variant="solid"
+                                radius="full"
+                            />
+                            <Box>
+                                <Heading size="3">Research Assistant</Heading>
+                                <Text size="1" weight="bold" style={{ textTransform: "uppercase", color: "var(--accent-9)" }}>Online</Text>
+                            </Box>
+                        </Flex>
+                        <Flex align="center" gap="1">
+                            <IconButton variant="ghost" size="2" radius="full"><ResetIcon /></IconButton>
+                            <IconButton variant="ghost" size="2" radius="full"><BookmarkIcon /></IconButton>
+                            <IconButton variant="ghost" size="2" radius="full"><DotsVerticalIcon /></IconButton>
+                        </Flex>
+                    </Flex>
 
-                {/* Messages */}
-                <ScrollArea className="flex-1 p-6">
-                    <div className="space-y-6">
-                        {messages.map((m, i) => (
-                            <div key={i} className={`flex gap-4 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${m.role === 'user' ? 'bg-primary' : 'bg-muted'
-                                    }`}>
-                                    {m.role === 'user' ? <User className="w-4 h-4 text-primary-foreground" /> : <Bot className="w-4 h-4" />}
-                                </div>
-                                <div className={`max-w-[80%] rounded-2xl px-5 py-3 shadow-md ${m.role === 'user'
-                                    ? 'bg-primary text-primary-foreground rounded-tr-none'
-                                    : 'bg-card border border-border/50 rounded-tl-none'
-                                    }`}>
-                                    <p className="text-sm leading-relaxed">{m.content}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </ScrollArea>
+                    {/* Messages */}
+                    <ScrollArea scrollbars="vertical" style={{ flexGrow: 1, height: "100%" }}>
+                        <Flex direction="column" gap="6" p="6">
+                            <Callout.Root color="blue" variant="soft" size="1">
+                                <Callout.Icon>
+                                    <InfoCircledIcon />
+                                </Callout.Icon>
+                                <Callout.Text>
+                                    This chat session is focused on your current project context.
+                                </Callout.Text>
+                            </Callout.Root>
 
-                {/* Input Area */}
-                <div className="p-6 border-t border-border/50 bg-muted/20">
-                    <div className="relative group">
-                        <Input
-                            placeholder="Type your question about your research..."
-                            className="h-14 pl-6 pr-14 rounded-2xl border-border/40 focus:border-primary/50 focus:ring-primary/20 bg-background/50 backdrop-blur-sm text-sm shadow-inner"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        />
-                        <Button
-                            className="absolute right-2 top-2 h-10 w-10 rounded-xl btn-primary shadow-lg transition-all active:scale-95"
-                            onClick={handleSend}
-                            disabled={!input.trim()}
-                        >
-                            <Send className="w-4 h-4 shrink-0" />
-                        </Button>
-                    </div>
-                    <p className="text-[10px] text-center mt-3 text-muted-foreground">
-                        AI can make mistakes. Consider checking important information.
-                    </p>
-                </div>
+                            {messages.map((m, i) => (
+                                <Flex key={i} gap="4" direction={m.role === 'user' ? 'row-reverse' : 'row'}>
+                                    <Avatar
+                                        size="2"
+                                        fallback={m.role === 'user' ? <PersonIcon /> : <BotIcon />}
+                                        color={m.role === 'user' ? 'indigo' : 'gray'}
+                                        variant={m.role === 'user' ? 'solid' : 'soft'}
+                                        radius="full"
+                                    />
+                                    <Box
+                                        p="4"
+                                        maxWidth="80%"
+                                        style={{
+                                            borderRadius: "var(--radius-4)",
+                                            backgroundColor: m.role === 'user' ? 'var(--accent-9)' : 'var(--gray-3)',
+                                            color: m.role === 'user' ? 'white' : 'inherit',
+                                            borderTopRightRadius: m.role === 'user' ? 0 : "var(--radius-4)",
+                                            borderTopLeftRadius: m.role === 'user' ? "var(--radius-4)" : 0
+                                        }}
+                                    >
+                                        <Text size="2" style={{ lineHeight: "1.6" }}>{m.content}</Text>
+                                    </Box>
+                                </Flex>
+                            ))}
+                        </Flex>
+                    </ScrollArea>
+
+                    {/* Input Area */}
+                    <Box p="6" style={{ borderTop: "1px solid var(--gray-5)", backgroundColor: "var(--gray-2)" }}>
+                        <Flex direction="column" gap="3">
+                            <Flex gap="2">
+                                <Box style={{ flexGrow: 1 }}>
+                                    <TextField.Root
+                                        placeholder="Type your question about your research..."
+                                        size="3"
+                                        radius="large"
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                    >
+                                        <TextField.Slot side="right">
+                                            <IconButton
+                                                size="2"
+                                                variant="solid"
+                                                radius="medium"
+                                                onClick={handleSend}
+                                                disabled={!input.trim()}
+                                            >
+                                                <PaperPlaneIcon />
+                                            </IconButton>
+                                        </TextField.Slot>
+                                    </TextField.Root>
+                                </Box>
+                            </Flex>
+                            <Text size="1" color="gray" align="center">
+                                AI can make mistakes. Consider checking important information.
+                            </Text>
+                        </Flex>
+                    </Box>
+                </Flex>
             </Card>
-        </div>
+        </Flex>
     );
 }

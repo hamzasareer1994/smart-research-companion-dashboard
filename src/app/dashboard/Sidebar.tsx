@@ -1,87 +1,115 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { cn } from "@/lib/utils";
+import React from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
-    LayoutDashboard,
-    FolderKanban,
-    Upload,
-    MessageSquare,
-    Clock,
-    Settings,
-    ChevronLeft,
-    ChevronRight,
-    BookOpen
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-
-const navItems = [
-    { label: "Overview", icon: LayoutDashboard, view: "overview" },
-    { label: "Projects", icon: FolderKanban, view: "projects" },
-    { label: "Activity", icon: Clock, view: "recent" },
-    { label: "Upload", icon: Upload, view: "upload" },
-    { label: "AI Chat", icon: MessageSquare, view: "chat" },
-    { label: "Settings", icon: Settings, view: "settings" },
-];
+    Box,
+    Flex,
+    Text,
+    IconButton,
+    Heading,
+    ScrollArea,
+    Button,
+    Card
+} from "@radix-ui/themes";
+import {
+    DashboardIcon,
+    FileTextIcon,
+    ChatBubbleIcon,
+    MagnifyingGlassIcon,
+    GearIcon,
+    UploadIcon,
+    RocketIcon
+} from "@radix-ui/react-icons";
 
 export function Sidebar() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const currentView = searchParams.get("view") || "overview";
-    const [collapsed, setCollapsed] = useState(false);
+
+    const navItems = [
+        { label: "Overview", icon: <DashboardIcon />, view: "overview" },
+        { label: "Research Search", icon: <MagnifyingGlassIcon />, view: "search" },
+        { label: "My Projects", icon: <RocketIcon />, view: "projects" },
+        { label: "Upload Source", icon: <UploadIcon />, view: "upload" },
+        { label: "Chat Assistant", icon: <ChatBubbleIcon />, view: "chat" },
+        { label: "Recent Logs", icon: <FileTextIcon />, view: "recent" },
+        { label: "Settings", icon: <GearIcon />, view: "settings" },
+    ];
 
     return (
-        <aside
-            className={cn(
-                "fixed left-0 top-0 h-full bg-card border-r border-border/50 text-card-foreground transition-all duration-300 z-50 overflow-hidden flex flex-col shadow-xl",
-                collapsed ? "w-20" : "w-64"
-            )}
+        <Box
+            width="260px"
+            height="100vh"
+            style={{
+                backgroundColor: "var(--color-background)",
+                borderRight: "1px solid var(--gray-5)",
+                position: "fixed",
+                left: 0,
+                top: 0,
+                zIndex: 50
+            }}
+            className="hidden md:block"
         >
-            <div className="p-6 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 flex-shrink-0">
-                    <BookOpen className="w-6 h-6" />
-                </div>
-                {!collapsed && (
-                    <span className="font-bold text-lg tracking-tight whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                        Smart Research
-                    </span>
-                )}
-            </div>
+            <Flex direction="column" height="100%">
+                {/* Logo Section */}
+                <Flex align="center" gap="3" p="6" mb="2">
+                    <IconButton size="3" variant="solid" color="indigo" radius="medium">
+                        <FileTextIcon width="20" height="20" />
+                    </IconButton>
+                    <Heading size="4" weight="bold" highContrast>Research AI</Heading>
+                </Flex>
 
-            <nav className="flex-1 px-3 space-y-1.5 py-4">
-                {navItems.map((item) => {
-                    const isActive = currentView === item.view;
-                    return (
-                        <Link key={item.view} href={`/dashboard?view=${item.view}`}>
-                            <div
-                                className={cn(
-                                    "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-300 group relative cursor-pointer hover-lift",
-                                    isActive
-                                        ? "bg-primary/10 text-primary font-bold shadow-sm"
-                                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                                )}
+                {/* Navigation Items */}
+                <ScrollArea scrollbars="vertical" style={{ flexGrow: 1 }}>
+                    <Flex direction="column" gap="1" px="4">
+                        {navItems.map((item) => (
+                            <Button
+                                key={item.view}
+                                variant={currentView === item.view ? "soft" : "ghost"}
+                                color={currentView === item.view ? "indigo" : "gray"}
+                                size="3"
+                                style={{
+                                    justifyContent: "flex-start",
+                                    height: "44px",
+                                    position: "relative"
+                                }}
+                                onClick={() => router.push(`/dashboard?view=${item.view}`)}
                             >
-                                <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "group-hover:text-foreground")} />
-                                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
-                                {isActive && (
-                                    <div className="absolute left-0 top-2 bottom-2 w-1.5 bg-primary rounded-r-full shadow-[2px_0_8px_var(--ring)]" />
-                                )}
-                            </div>
-                        </Link>
-                    );
-                })}
-            </nav>
+                                <Flex align="center" gap="3" width="100%">
+                                    {item.icon}
+                                    <Text size="2" weight={currentView === item.view ? "bold" : "medium"}>
+                                        {item.label}
+                                    </Text>
+                                    {currentView === item.view && (
+                                        <Box
+                                            style={{
+                                                position: "absolute",
+                                                left: "-16px",
+                                                width: "4px",
+                                                height: "20px",
+                                                backgroundColor: "var(--accent-9)",
+                                                borderRadius: "0 4px 4px 0"
+                                            }}
+                                        />
+                                    )}
+                                </Flex>
+                            </Button>
+                        ))}
+                    </Flex>
+                </ScrollArea>
 
-            <div className="p-4 border-t border-border/50">
-                <Button
-                    variant="ghost"
-                    className="w-full justify-center rounded-xl"
-                    onClick={() => setCollapsed(!collapsed)}
-                >
-                    {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-                </Button>
-            </div>
-        </aside>
+                {/* Bottom Card */}
+                <Box p="4">
+                    <Card size="2" variant="surface" style={{ backgroundColor: "var(--accent-2)" }}>
+                        <Flex direction="column" gap="2">
+                            <Text size="1" weight="bold">Pro Plan Active</Text>
+                            <Text size="1" color="gray">You have 1.2M credits remaining this month.</Text>
+                            <Button size="1" variant="ghost" mt="1">Manage Billing</Button>
+                        </Flex>
+                    </Card>
+                </Box>
+            </Flex>
+        </Box>
     );
 }

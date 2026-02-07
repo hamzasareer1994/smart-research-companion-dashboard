@@ -1,22 +1,41 @@
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileTextIcon } from "@radix-ui/react-icons";
+import { Box, Flex, IconButton, Text } from "@radix-ui/themes";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-900 via-zinc-950 to-black relative overflow-hidden">
-            {/* Background blur elements */}
-            <div className="absolute top-1/4 -left-32 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
+        <Flex
+            align="center"
+            justify="center"
+            minHeight="100vh"
+            className="relative overflow-hidden"
+            style={{
+                backgroundColor: "var(--gray-1)",
+                backgroundImage: "radial-gradient(circle at 2px 2px, var(--gray-4) 1px, transparent 0)",
+                backgroundSize: "40px 40px"
+            }}
+        >
+            {/* Background elements */}
+            <Box
+                position="absolute"
+                style={{ top: "25%", left: "-10%", width: "400px", height: "400px", filter: "blur(100px)", opacity: 0.1, backgroundColor: "var(--accent-9)", borderRadius: "100%" }}
+            />
+            <Box
+                position="absolute"
+                style={{ bottom: "25%", right: "-10%", width: "400px", height: "400px", filter: "blur(100px)", opacity: 0.1, backgroundColor: "var(--accent-9)", borderRadius: "100%" }}
+            />
 
             {/* Logo */}
-            <Link href="/" className="absolute top-6 left-6 flex items-center gap-2 text-white">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-semibold">Smart Research</span>
-            </Link>
+            <Box position="absolute" top="6" left="6">
+                <Link href="/" className="flex items-center gap-2 no-underline">
+                    <IconButton size="2" variant="solid">
+                        <FileTextIcon />
+                    </IconButton>
+                    <Text size="3" weight="bold" color="gray" highContrast>Smart Research</Text>
+                </Link>
+            </Box>
 
             {children}
-        </div>
+        </Flex>
     );
 }

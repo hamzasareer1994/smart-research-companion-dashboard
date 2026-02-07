@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { DashboardHeader } from "./DashboardHeader";
+import { Box, Flex, Spinner, Container } from "@radix-ui/themes";
 
 export default function DashboardLayout({
     children,
@@ -24,23 +25,29 @@ export default function DashboardLayout({
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-background">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
+            <Flex align="center" justify="center" minHeight="100vh">
+                <Spinner size="3" />
+            </Flex>
         );
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        <Box minHeight="100vh" style={{ backgroundColor: "var(--gray-1)" }}>
             <Sidebar />
-            <div className="pl-64 transition-all duration-300">
+            <Box className="pl-64 transition-all duration-300">
                 <DashboardHeader />
-                <main className="p-8 max-w-[1600px] mx-auto">
-                    <React.Suspense fallback={<div>Loading...</div>}>
-                        {children}
-                    </React.Suspense>
-                </main>
-            </div>
-        </div>
+                <Container size="4">
+                    <Box p="8">
+                        <React.Suspense fallback={
+                            <Flex align="center" justify="center" p="9">
+                                <Spinner size="3" />
+                            </Flex>
+                        }>
+                            {children}
+                        </React.Suspense>
+                    </Box>
+                </Container>
+            </Box>
+        </Box>
     );
 }

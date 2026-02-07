@@ -6,16 +6,23 @@ import { NewProjectForm } from "./NewProjectForm";
 import { RecentActivity } from "./RecentActivity";
 import { UploadZone } from "./UploadZone";
 import { ChatInterface } from "./ChatInterface";
-import { SettingsTabs } from "./SettingsTabs";
-import { Card } from "@/components/ui/card";
-import { Sparkles, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
+import { AccountSettings } from "./AccountSettings";
+import {
+    Box,
+    Button,
+    Card,
+    Flex,
+    Grid,
+    Heading,
+    Text,
+    Badge
+} from "@radix-ui/themes";
+import { MagicWandIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 import { Suspense } from "react";
 
 export default function DashboardPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Flex align="center" justify="center" p="9"><Text>Loading Content...</Text></Flex>}>
             <DashboardContent />
         </Suspense>
     );
@@ -26,9 +33,9 @@ function DashboardContent() {
     const view = searchParams.get("view") || "overview";
 
     return (
-        <div className="space-y-8">
+        <Box>
             {renderView(view)}
-        </div>
+        </Box>
     );
 }
 
@@ -47,7 +54,7 @@ function renderView(view: string) {
         case "chat":
             return <ChatInterface />;
         case "settings":
-            return <SettingsTabs />;
+            return <AccountSettings />;
         default:
             return <DashboardOverview />;
     }
@@ -55,53 +62,82 @@ function renderView(view: string) {
 
 function DashboardOverview() {
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">Welcome back, Researcher</h1>
-                <p className="text-muted-foreground">Here is what is happening with your research projects today.</p>
-            </div>
+        <Flex direction="column" gap="8">
+            <Box>
+                <Heading size="8" mb="1">Welcome back, Researcher</Heading>
+                <Text color="gray" size="3">Here is what is happening with your research projects today.</Text>
+            </Box>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Grid columns={{ initial: "1", md: "2", lg: "4" }} gap="6">
                 <StatCard title="Total Papers" value="12" change="+2 this week" />
                 <StatCard title="AI Analysis" value="48" change="+12 this week" />
                 <StatCard title="Projects" value="4" change="0 this week" />
                 <StatCard title="Credits Left" value="840" change="of 1,000" />
-            </div>
+            </Grid>
 
-            <Card className="p-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white overflow-hidden relative border-none shadow-2xl overflow-hidden group">
-                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div className="space-y-4 max-w-xl text-center md:text-left">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-bold uppercase tracking-wider">
-                            <Sparkles className="w-3 h-3" />
-                            New Feature
-                        </div>
-                        <h2 className="text-3xl font-bold">Try the Knowledge Graph</h2>
-                        <p className="text-blue-100/90 text-lg">
+            <Card size="4" variant="classic" style={{
+                background: "linear-gradient(to bottom right, var(--accent-9), var(--accent-10))",
+                color: "white",
+                position: "relative",
+                overflow: "hidden"
+            }}>
+                <Flex direction={{ initial: "column", md: "row" }} align="center" justify="between" gap="6">
+                    <Flex direction="column" gap="4" maxWidth="600px" align={{ initial: "center", md: "start" }} style={{ position: "relative", zIndex: 1 }}>
+                        <Flex align="center" gap="2" justify={{ initial: "center", md: "start" }}>
+                            <Badge size="2" variant="soft" highContrast>
+                                <MagicWandIcon /> NEW FEATURE
+                            </Badge>
+                        </Flex>
+                        <Heading size="7" weight="bold" align={{ initial: "center", md: "left" }}>Try the Knowledge Graph</Heading>
+                        <Text size="4" style={{ opacity: 0.9 }} align={{ initial: "center", md: "left" }}>
                             Visualize connections between your uploaded papers using our new semantic mapping engine.
-                        </p>
-                        <Button className="bg-white text-blue-700 hover:bg-blue-50 font-bold px-8 h-12 rounded-xl group-hover:scale-105 transition-transform">
-                            Explore Graph
-                            <ArrowRight className="ml-2 w-4 h-4" />
-                        </Button>
-                    </div>
-                    <div className="hidden md:block opacity-20 group-hover:opacity-30 transition-opacity">
-                        <Sparkles className="w-64 h-64" />
-                    </div>
-                </div>
-                {/* Decorative circles */}
-                <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-indigo-500/30 rounded-full blur-3xl pointer-events-none" />
+                        </Text>
+                        <Flex justify={{ initial: "center", md: "start" }}>
+                            <Button color="gray" variant="solid" highContrast size="3" radius="large" style={{ cursor: "pointer" }}>
+                                Explore Graph <ArrowRightIcon />
+                            </Button>
+                        </Flex>
+                    </Flex>
+                    <Box className="hidden md:block" style={{ opacity: 0.2, position: "relative", zIndex: 1 }}>
+                        <MagicWandIcon width="160" height="160" />
+                    </Box>
+                </Flex>
+                {/* Decorative gradients */}
+                <Box style={{
+                    position: "absolute",
+                    top: "-100px",
+                    right: "-100px",
+                    width: "300px",
+                    height: "300px",
+                    filter: "blur(80px)",
+                    background: "rgba(255,255,255,0.1)",
+                    borderRadius: "100%"
+                }} />
+                <Box style={{
+                    position: "absolute",
+                    bottom: "-50px",
+                    left: "-50px",
+                    width: "200px",
+                    height: "200px",
+                    filter: "blur(60px)",
+                    background: "rgba(0,0,0,0.1)",
+                    borderRadius: "100%"
+                }} />
             </Card>
-        </div>
+        </Flex>
     );
 }
 
 function StatCard({ title, value, change }: { title: string, value: string, change: string }) {
     return (
-        <Card className="p-6 hover:shadow-md transition-all border-border/50 bg-card/50 backdrop-blur-sm">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <h3 className="text-2xl font-bold mt-1">{value}</h3>
-            <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">{change}</p>
+        <Card size="3">
+            <Flex direction="column" gap="1">
+                <Text size="2" color="gray" weight="medium">{title}</Text>
+                <Box>
+                    <Text size="7" weight="bold">{value}</Text>
+                </Box>
+                <Text size="1" weight="medium" style={{ color: "var(--accent-11)" }}>{change}</Text>
+            </Flex>
         </Card>
     );
 }

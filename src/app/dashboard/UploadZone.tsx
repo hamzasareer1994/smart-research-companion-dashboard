@@ -1,17 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
-    Upload,
-    FileText,
-    X,
-    CheckCircle2,
-    FileUp,
-    Shield
-} from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+    Box,
+    Button,
+    Card,
+    Flex,
+    Heading,
+    Text,
+    IconButton,
+    Progress,
+    Grid,
+    Callout
+} from "@radix-ui/themes";
+import {
+    UploadIcon,
+    FileTextIcon,
+    Cross2Icon,
+    CheckCircledIcon,
+    UpdateIcon,
+    LockClosedIcon,
+    InfoCircledIcon
+} from "@radix-ui/react-icons";
 
 export function UploadZone() {
     const [files, setFiles] = useState<{ name: string; size: string; status: 'idle' | 'uploading' | 'done', progress: number }[]>([]);
@@ -41,99 +51,134 @@ export function UploadZone() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <div className="text-center">
-                <h1 className="text-3xl font-bold tracking-tight mb-2">Upload Research Papers</h1>
-                <p className="text-muted-foreground">Add PDFs to your research engine to enable intelligent chat and analysis.</p>
-            </div>
+        <Flex direction="column" gap="8" maxWidth="1000px" mx="auto">
+            <Box>
+                <Heading size="8" mb="2" weight="bold" align="center">Upload Research Papers</Heading>
+                <Text color="gray" size="3" align="center" style={{ display: "block" }}>Add PDFs to your research engine to enable intelligent chat and analysis.</Text>
+            </Box>
 
-            <div
+            <Callout.Root color="blue" variant="soft">
+                <Callout.Icon>
+                    <InfoCircledIcon />
+                </Callout.Icon>
+                <Callout.Text>
+                    Large files may take a few moments to vectorize for semantic search.
+                </Callout.Text>
+            </Callout.Root>
+
+            <Box
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={onDrop}
-                className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${dragging
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-card/40 backdrop-blur-sm"
-                    } hover-lift`}
+                p="9"
+                style={{
+                    border: "2px dashed var(--gray-5)",
+                    borderRadius: "var(--radius-4)",
+                    backgroundColor: dragging ? "var(--accent-3)" : "var(--gray-2)",
+                    transition: "all 0.3s ease"
+                }}
             >
-                <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6 shadow-sm shadow-primary/20">
-                        <Upload className="w-10 h-10" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Drag & Drop Documents</h3>
-                    <p className="text-muted-foreground mb-6">Support for PDF only. Max file size 50MB.</p>
-                    <label className="cursor-pointer">
+                <Flex direction="column" align="center" gap="4">
+                    <IconButton size="4" variant="soft" radius="full">
+                        <UploadIcon width="32" height="32" />
+                    </IconButton>
+                    <Box>
+                        <Heading size="5" mb="1" align="center">Drag & Drop Documents</Heading>
+                        <Text color="gray" size="2" align="center" style={{ display: "block" }}>Support for PDF only. Max file size 50MB.</Text>
+                    </Box>
+                    <label style={{ cursor: "pointer" }}>
                         <input type="file" className="hidden" multiple accept=".pdf" />
-                        <Button variant="outline" className="h-11 px-8 rounded-full hover-lift">
-                            Select Files
+                        <Button variant="outline" size="3" radius="full" asChild>
+                            <Box as="span">Select Files</Box>
                         </Button>
                     </label>
-                </div>
-            </div>
+                </Flex>
+            </Box>
 
-            <div className="grid md:grid-cols-3 gap-6">
-                <Card className="p-4 flex gap-4 glass border-none hover-lift">
-                    <Shield className="w-5 h-5 text-emerald-500 shrink-0" />
-                    <div className="text-xs">
-                        <p className="font-semibold">Privacy First</p>
-                        <p className="text-muted-foreground">Your papers are private to your workspace.</p>
-                    </div>
+            <Grid columns={{ initial: "1", md: "3" }} gap="4">
+                <Card size="2">
+                    <Flex gap="3" align="start">
+                        <Box mt="1">
+                            <LockClosedIcon style={{ color: "var(--green-9)" }} />
+                        </Box>
+                        <Box>
+                            <Text size="2" weight="bold" style={{ display: "block" }}>Privacy First</Text>
+                            <Text size="1" color="gray">Your papers are private to your workspace.</Text>
+                        </Box>
+                    </Flex>
                 </Card>
-                <Card className="p-4 flex gap-4 glass border-none hover-lift">
-                    <FileUp className="w-5 h-5 text-primary shrink-0" />
-                    <div className="text-xs">
-                        <p className="font-semibold">Smart Vectorization</p>
-                        <p className="text-muted-foreground">Semantic embedding for high-precision search.</p>
-                    </div>
+                <Card size="2">
+                    <Flex gap="3" align="start">
+                        <Box mt="1">
+                            <UpdateIcon style={{ color: "var(--blue-9)" }} />
+                        </Box>
+                        <Box>
+                            <Text size="2" weight="bold" style={{ display: "block" }}>Smart Vectorization</Text>
+                            <Text size="1" color="gray">Semantic embedding for high-precision search.</Text>
+                        </Box>
+                    </Flex>
                 </Card>
-                <Card className="p-4 flex gap-4 glass border-none hover-lift">
-                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                    <div className="text-xs">
-                        <p className="font-semibold">Bulk Processing</p>
-                        <p className="text-muted-foreground">Upload and process entire folders at once.</p>
-                    </div>
+                <Card size="2">
+                    <Flex gap="3" align="start">
+                        <Box mt="1">
+                            <CheckCircledIcon style={{ color: "var(--orange-9)" }} />
+                        </Box>
+                        <Box>
+                            <Text size="2" weight="bold" style={{ display: "block" }}>Bulk Processing</Text>
+                            <Text size="1" color="gray">Upload and process entire folders at once.</Text>
+                        </Box>
+                    </Flex>
                 </Card>
-            </div>
+            </Grid>
 
             {files.length > 0 && (
-                <div className="space-y-4 pt-8 border-t border-border/50">
-                    <div className="flex items-center justify-between">
-                        <h2 className="font-semibold text-lg">{files.length} Document(s) pending</h2>
+                <Flex direction="column" gap="4" pt="6" style={{ borderTop: "1px solid var(--gray-5)" }}>
+                    <Flex align="center" justify="between">
+                        <Heading size="4">{files.length} Document(s) pending</Heading>
                         <Button
+                            size="3"
                             onClick={startUpload}
                             disabled={files.some(f => f.status === 'uploading')}
-                            className="btn-primary px-8 rounded-xl shadow-lg shadow-primary/20"
                         >
                             Process Documents
                         </Button>
-                    </div>
+                    </Flex>
 
-                    <div className="space-y-3">
+                    <Flex direction="column" gap="3">
                         {files.map((file, idx) => (
-                            <div key={idx} className="p-4 rounded-xl border border-border/50 bg-card/60 backdrop-blur-md flex items-center gap-4 hover-lift">
-                                <FileText className="w-8 h-8 text-primary shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <p className="font-medium truncate text-sm">{file.name}</p>
-                                        <span className="text-xs text-muted-foreground">{file.size}</span>
-                                    </div>
-                                    {file.status === 'uploading' && (
-                                        <Progress value={file.progress} className="h-1.5 bg-muted" />
-                                    )}
-                                    {file.status === 'done' && (
-                                        <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium italic">
-                                            <CheckCircle2 className="w-3 h-3" /> Ready for analysis
-                                        </p>
-                                    )}
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => setFiles(f => f.filter((_, i) => i !== idx))}>
-                                    <X className="w-4 h-4" />
-                                </Button>
-                            </div>
+                            <Card key={idx} size="2">
+                                <Flex align="center" gap="4">
+                                    <IconButton variant="soft" size="3">
+                                        <FileTextIcon />
+                                    </IconButton>
+                                    <Box style={{ flexGrow: 1 }}>
+                                        <Flex justify="between" align="center" mb="1">
+                                            <Text size="2" weight="bold">{file.name}</Text>
+                                            <Text size="1" color="gray">{file.size}</Text>
+                                        </Flex>
+                                        {file.status === 'uploading' && (
+                                            <Progress value={file.progress} size="1" />
+                                        )}
+                                        {file.status === 'done' && (
+                                            <Flex align="center" gap="1">
+                                                <CheckCircledIcon style={{ color: "var(--green-9)" }} />
+                                                <Text size="1" weight="bold" style={{ color: "var(--green-9)" }}>Ready for analysis</Text>
+                                            </Flex>
+                                        )}
+                                    </Box>
+                                    <IconButton
+                                        variant="ghost"
+                                        color="red"
+                                        onClick={() => setFiles(f => f.filter((_, i) => i !== idx))}
+                                    >
+                                        <Cross2Icon />
+                                    </IconButton>
+                                </Flex>
+                            </Card>
                         ))}
-                    </div>
-                </div>
+                    </Flex>
+                </Flex>
             )}
-        </div>
+        </Flex>
     );
 }

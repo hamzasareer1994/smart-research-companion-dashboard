@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import "@radix-ui/themes/styles.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { RadixThemeProvider } from "@/components/radix-theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,36 +27,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  // Sanitize main theme to prevent InvalidCharacterError
-                  const theme = localStorage.getItem('theme');
-                  if (theme && theme.includes(' ')) {
-                    localStorage.setItem('theme', theme.split(' ')[0]);
-                  }
-                  
-                  // Set sub-theme (Academic, Emerald, Midnight, Ametrine)
-                  let subTheme = localStorage.getItem('sub-theme');
-                  const mode = localStorage.getItem('theme') || 'light';
-                  
-                  // Fallback for deprecated themes
-                  const validThemes = ['academic', 'emerald', 'midnight', 'ametrine'];
-                  if (!subTheme || !validThemes.includes(subTheme)) {
-                    subTheme = mode === 'dark' ? 'midnight' : 'academic';
-                    localStorage.setItem('sub-theme', subTheme);
-                  }
-                  
-                  document.documentElement.setAttribute('data-color-theme', subTheme);
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
-      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
@@ -62,7 +34,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <RadixThemeProvider>
+            {children}
+          </RadixThemeProvider>
         </ThemeProvider>
       </body>
     </html>
