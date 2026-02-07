@@ -54,7 +54,7 @@ export function Sidebar() {
             <Flex direction="column" height="100%">
                 {/* Logo Section */}
                 <Flex align="center" gap="3" p="6" mb="2">
-                    <IconButton size="3" variant="solid" color="indigo" radius="medium">
+                    <IconButton size="3" variant="solid" radius="medium">
                         <FileTextIcon width="20" height="20" />
                     </IconButton>
                     <Heading size="4" weight="bold" highContrast>Research AI</Heading>
@@ -67,7 +67,7 @@ export function Sidebar() {
                             <Button
                                 key={item.view}
                                 variant={currentView === item.view ? "soft" : "ghost"}
-                                color={currentView === item.view ? "indigo" : "gray"}
+                                color={currentView === item.view ? undefined : "gray"}
                                 size="3"
                                 style={{
                                     justifyContent: "flex-start",

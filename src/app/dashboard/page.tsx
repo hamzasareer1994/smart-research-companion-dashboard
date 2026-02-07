@@ -77,7 +77,7 @@ function DashboardOverview() {
 
             <Card size="4" variant="classic" style={{
                 background: "linear-gradient(to bottom right, var(--accent-9), var(--accent-10))",
-                color: "white",
+                color: "var(--accent-contrast)",
                 position: "relative",
                 overflow: "hidden"
             }}>
@@ -93,7 +93,7 @@ function DashboardOverview() {
                             Visualize connections between your uploaded papers using our new semantic mapping engine.
                         </Text>
                         <Flex justify={{ initial: "center", md: "start" }}>
-                            <Button color="gray" variant="solid" highContrast size="3" radius="large" style={{ cursor: "pointer" }}>
+                            <Button variant="solid" highContrast size="3" radius="large" style={{ cursor: "pointer", color: "var(--accent-9)", backgroundColor: "var(--accent-contrast)" }}>
                                 Explore Graph <ArrowRightIcon />
                             </Button>
                         </Flex>
