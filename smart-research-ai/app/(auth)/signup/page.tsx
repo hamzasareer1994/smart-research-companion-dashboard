@@ -40,11 +40,11 @@ export default function SignupPage() {
         setIsLoading(true)
         try {
             const response = await authService.signup(data)
-            toast.message("Account created!", {
-                description: response.message || "Please check your email to confirm your account.",
+            toast.success("Account created!", {
+                description: "Please check your email to confirm your account before logging in.",
+                duration: 10000,
             })
-            // Optional: Redirect to login or a "verify email" page
-            // router.push("/login") 
+            router.push("/login")
         } catch (error) {
             toast.error("Signup failed", {
                 description: error instanceof Error ? error.message : "Something went wrong",

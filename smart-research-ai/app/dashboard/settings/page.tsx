@@ -18,8 +18,22 @@ import {
 } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 export default function SettingsPage() {
+    const { theme, setTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
+
+    // Avoid hydration mismatch
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return null
+    }
+
     return (
         <div className="space-y-6">
             <div>
@@ -107,7 +121,11 @@ export default function SettingsPage() {
                                         Toggle dark mode on or off.
                                     </span>
                                 </Label>
-                                <Switch id="dark-mode" />
+                                <Switch
+                                    id="dark-mode"
+                                    checked={theme === "dark"}
+                                    onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                                />
                             </div>
                         </CardContent>
                     </Card>

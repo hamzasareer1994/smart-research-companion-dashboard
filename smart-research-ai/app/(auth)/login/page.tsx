@@ -23,9 +23,12 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { authService } from "@/services/auth"
 
+import { useUserStore, User, UserTier } from "@/lib/store"
+
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
+    const setUser = useUserStore((state) => state.setUser)
 
     const form = useForm<LoginValues>({
         resolver: zodResolver(loginSchema),
@@ -38,9 +41,20 @@ export default function LoginPage() {
     async function onSubmit(data: LoginValues) {
         setIsLoading(true)
         try {
-            await authService.login(data)
+            const response = await authService.login(data)
+
+            // Initialize Store
+            const user: User = {
+                id: response.user_id,
+                email: response.email,
+                tier: response.tier as UserTier,
+                credits: response.credits,
+                access_token: response.access_token
+            }
+            setUser(user)
+
             toast.success("Login successful", {
-                description: "Welcome back!",
+                description: `Welcome back, ${response.email.split('@')[0]}!`,
             })
             router.push("/dashboard")
         } catch (error) {

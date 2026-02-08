@@ -2,12 +2,15 @@
 
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
+import { useTokenRefresh } from "@/hooks/use-token-refresh"
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    // Auto-refresh tokens to prevent session expiration
+    useTokenRefresh()
     return (
         <div className="flex min-h-screen bg-background text-foreground">
             {/* Desktop Sidebar */}
