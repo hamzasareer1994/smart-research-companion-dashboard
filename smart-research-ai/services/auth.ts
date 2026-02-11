@@ -11,7 +11,8 @@ const getErrorMessage = async (response: Response) => {
 
 export const authService = {
     async login(data: LoginValues) {
-        const response = await fetch("/api/v1/auth/login", {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -31,7 +32,8 @@ export const authService = {
     },
 
     async signup(data: SignupValues) {
-        const response = await fetch("/api/v1/auth/signup", {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        const response = await fetch(`${baseUrl}/api/v1/auth/signup`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

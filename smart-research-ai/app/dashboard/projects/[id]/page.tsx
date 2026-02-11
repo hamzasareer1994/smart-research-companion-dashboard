@@ -74,6 +74,10 @@ export default function ProjectDetailPage() {
         citationVelocity: 0,
         avgYear: 0
     })
+    const [notes, setNotes] = useState("")
+    const [isSavingNotes, setIsSavingNotes] = useState(false)
+    const [selectedInsights, setSelectedInsights] = useState<any>(null)
+    const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false)
 
     useEffect(() => {
         if (projectId) {
@@ -83,16 +87,28 @@ export default function ProjectDetailPage() {
     }, [projectId])
 
     const fetchProjectDetails = async () => {
-        setIsLoading(true)
+        // Only show full loading if we don't have project data yet
+        if (!project) {
+            setIsLoading(true)
+        }
+
         try {
             const data = await projectService.getProjectDetails(projectId)
             setProject(data)
+            setNotes(data.notes || "")
         } catch (error: any) {
             toast.error("Error loading project details")
             router.push("/dashboard/projects")
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const handleRefresh = async () => {
+        await Promise.all([
+            fetchProjectDetails(),
+            fetchProjectAnalytics()
+        ])
     }
 
     const fetchProjectAnalytics = async () => {
@@ -126,7 +142,6 @@ export default function ProjectDetailPage() {
     const handleAction = (action: string, paperId: string) => {
         const paper = papers.find((p: any) => p.id === paperId)
         if (!paper) return
-        // ... rest of the method
 
         switch (action) {
             case "chat":
@@ -139,19 +154,61 @@ export default function ProjectDetailPage() {
                     try {
                         const summary = await aiService.generateSummary(paper.title, paper.abstract || "No abstract available.")
                         toast.success("Summary generated!", { id })
-                        // We could open a dialog or update state here to show the summary
-                        console.log("Summary:", summary)
+                        // In a real app, we might open a modal here
                     } catch (error: any) {
                         toast.error(error.message || "Failed to generate summary", { id })
                     }
                 }
                 runSummarize()
                 break
+            case "insights":
+                const runInsights = async () => {
+                    const id = toast.loading(`Extracting insights from "${paper.title}"...`)
+                    try {
+                        const insights = await aiService.extractInsights(paper.abstract || "No abstract available.")
+                        toast.success("Insights extracted!", {
+                            id,
+                            action: {
+                                label: "View Insights",
+                                onClick: () => {
+                                    setSelectedInsights({
+                                        title: paper.title,
+                                        content: insights
+                                    })
+                                    setIsInsightsModalOpen(true)
+                                }
+                            }
+                        })
+                    } catch (error: any) {
+                        toast.error(error.message || "Failed to extract insights", { id })
+                    }
+                }
+                runInsights()
+                break
+            case "find_similar":
+                toast.info(`Looking for papers similar to: ${paper.title}`)
+                router.push(`/dashboard/search?q=${encodeURIComponent(paper.title)}&similar=${paper.id}`)
+                break
             case "view_original":
-                toast.info(`Opening source for: ${paper.title}`)
+                const url = paper.storage_url || paper.pdf_url || paper.url
+                if (url) {
+                    window.open(url, "_blank")
+                } else {
+                    toast.error("No source URL available for this paper")
+                }
                 break
             case "remove":
-                toast.error("Paper removal logic pending backend integration")
+                const runRemove = async () => {
+                    const id = toast.loading(`Removing "${paper.title}"...`)
+                    try {
+                        await projectService.removePaper(projectId, paper.id)
+                        await fetchProjectDetails()
+                        toast.success("Paper removed from project", { id })
+                    } catch (error: any) {
+                        toast.error(error.message || "Failed to remove paper", { id })
+                    }
+                }
+                runRemove()
                 break
             default:
                 console.log("Action:", action, "on paper:", paperId)
@@ -188,6 +245,21 @@ export default function ProjectDetailPage() {
         }
     }
 
+    const handleSaveNotes = async () => {
+        setIsSavingNotes(true)
+        const toastId = toast.loading("Saving notes...")
+        try {
+            await projectService.updateProject(projectId, { notes })
+            toast.success("Notes saved successfully", { id: toastId })
+            // Refresh local project data
+            setProject({ ...project, notes })
+        } catch (error: any) {
+            toast.error(error.message || "Failed to save notes", { id: toastId })
+        } finally {
+            setIsSavingNotes(false)
+        }
+    }
+
     if (isLoading) return <div className="p-8">Loading project details...</div>
     if (!project) return null
 
@@ -206,7 +278,12 @@ export default function ProjectDetailPage() {
 
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">{project.name}</h2>
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-3xl font-bold tracking-tight">{project.name}</h2>
+                        <Badge variant="outline" className="h-6 px-2 text-xs font-mono">
+                            {stats.totalPapers || project.papers?.length || 0} / {userTier === "student" ? "10" : userTier === "professor" ? "20" : "∞"} Papers
+                        </Badge>
+                    </div>
                     <p className="text-muted-foreground mt-1">
                         {project.description || "Research workspace overview and paper management."}
                     </p>
@@ -269,7 +346,12 @@ export default function ProjectDetailPage() {
 
             <aside className="space-y-6">
                 <ProjectStatisticsCard stats={stats} />
-                <SmartSuggestionsPanel projectId={projectId} papers={papers} projectTitle={project.name} />
+                <SmartSuggestionsPanel
+                    projectId={projectId}
+                    papers={papers}
+                    projectTitle={project.name}
+                    onPaperAdded={handleRefresh}
+                />
             </aside>
 
             {/* Main Tabs */}
@@ -371,12 +453,21 @@ export default function ProjectDetailPage() {
                                     <PenLine className="h-5 w-5 mr-3 text-primary" />
                                     Research Notes
                                 </CardTitle>
-                                <Button size="sm" variant="ghost">Save Notes</Button>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handleSaveNotes}
+                                    disabled={isSavingNotes || notes === (project?.notes || "")}
+                                >
+                                    {isSavingNotes ? "Saving..." : "Save Notes"}
+                                </Button>
                             </div>
                         </CardHeader>
                         <textarea
                             className="flex-1 p-6 bg-transparent outline-none resize-none text-sm leading-relaxed"
                             placeholder="Start writing your thoughts, research questions, or drafting segments of your paper..."
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
                         />
                     </Card>
                 </TabsContent>
@@ -436,6 +527,40 @@ export default function ProjectDetailPage() {
                 <MessageSquare className="h-6 w-6" />
                 <span className="sr-only">Chat with Assistant</span>
             </Button>
+
+            {/* AI Insights Modal */}
+            <Dialog open={isInsightsModalOpen} onOpenChange={setIsInsightsModalOpen}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-purple-500" />
+                            AI Research Insights
+                        </DialogTitle>
+                        <DialogDescription>
+                            Deep analysis for: {selectedInsights?.title}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                            <div className="bg-muted/50 p-6 rounded-xl border leading-relaxed whitespace-pre-wrap">
+                                {selectedInsights?.content}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-4">
+                        <Button variant="outline" onClick={() => setIsInsightsModalOpen(false)}>
+                            Close
+                        </Button>
+                        <Button onClick={() => {
+                            setChatContext({ id: "", title: selectedInsights?.title || "Paper" })
+                            setIsChatOpen(true)
+                            setIsInsightsModalOpen(false)
+                        }}>
+                            Discuss with AI
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div >
     )
 }

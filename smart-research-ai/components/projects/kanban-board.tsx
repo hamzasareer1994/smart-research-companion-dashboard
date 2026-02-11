@@ -10,7 +10,9 @@ import {
     DragOverEvent,
     DragEndEvent,
     defaultDropAnimationSideEffects,
+    useDroppable,
 } from "@dnd-kit/core"
+import { toast } from "sonner"
 import {
     arrayMove,
     SortableContext,
@@ -20,7 +22,7 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { createPortal } from "react-dom"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,7 +43,7 @@ interface Paper {
     authors: string[]
     year: number
     citations: number
-    status: "to_read" | "reading" | "complete" | "key_paper"
+    status: "to_read" | "reading" | "completed" | "failed"
 }
 
 interface KanbanBoardProps {
@@ -51,15 +53,25 @@ interface KanbanBoardProps {
 }
 
 const COLUMNS = [
-    { id: "to_read", title: "To Read", color: "bg-slate-500" },
+    { id: "to_read", title: "To Read", color: "bg-blue-300" },
     { id: "reading", title: "Reading", color: "bg-blue-500" },
-    { id: "complete", title: "Complete", color: "bg-green-500" },
-    { id: "key_paper", title: "Key Papers", color: "bg-purple-500" },
+    { id: "completed", title: "Done Reading", color: "bg-green-500" },
 ] as const
+
+interface KanbanBoardProps {
+    papers: Paper[]
+    onStatusChange: (paperId: string, newStatus: Paper["status"]) => void
+    onAction: (action: string, paperId: string) => void
+}
 
 export function KanbanBoard({ papers: initialPapers, onStatusChange, onAction }: KanbanBoardProps) {
     const [papers, setPapers] = useState(initialPapers)
     const [activePaper, setActivePaper] = useState<Paper | null>(null)
+
+    // Sync local state when props change (e.g. paper added/deleted elsewhere)
+    useEffect(() => {
+        setPapers(initialPapers)
+    }, [initialPapers])
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -105,13 +117,29 @@ export function KanbanBoard({ papers: initialPapers, onStatusChange, onAction }:
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-full min-h-[600px]">
-                {COLUMNS.map((column) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full min-h-[600px]">
+                {COLUMNS.map((column, idx) => (
                     <KanbanColumn
                         key={column.id}
                         column={column}
-                        papers={papers.filter((p) => p.status === column.id)}
+                        papers={papers.filter((p) => (p.status as string) === column.id)}
                         onAction={onAction}
+                        onMovePapers={(status) => {
+                            // Find the 'previous' column to pull from
+                            const prevCol = idx > 0 ? COLUMNS[idx - 1] : COLUMNS[COLUMNS.length - 1]
+                            const papersToMove = papers.filter(p => (p.status as string) === prevCol.id)
+
+                            if (papersToMove.length === 0) {
+                                toast.error(`No papers in ${prevCol.title} to move.`)
+                                return
+                            }
+
+                            // Move the first paper
+                            const paperToMove = papersToMove[0]
+                            onStatusChange(paperToMove.id, status)
+                            setPapers(prev => prev.map(p => p.id === paperToMove.id ? { ...p, status } : p))
+                            toast.success(`Moved "${paperToMove.title}" to ${column.title}`)
+                        }}
                     />
                 ))}
             </div>
@@ -138,9 +166,18 @@ export function KanbanBoard({ papers: initialPapers, onStatusChange, onAction }:
     )
 }
 
-function KanbanColumn({ column, papers, onAction }: { column: typeof COLUMNS[number], papers: Paper[], onAction: (action: string, paperId: string) => void }) {
+function KanbanColumn({ column, papers, onAction, onMovePapers }: {
+    column: typeof COLUMNS[number],
+    papers: Paper[],
+    onAction: (action: string, paperId: string) => void,
+    onMovePapers: (status: Paper["status"]) => void
+}) {
+    const { setNodeRef } = useDroppable({
+        id: column.id,
+    });
+
     return (
-        <div className="flex flex-col gap-4">
+        <div ref={setNodeRef} className="flex flex-col gap-4">
             <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${column.color}`} />
@@ -149,7 +186,13 @@ function KanbanColumn({ column, papers, onAction }: { column: typeof COLUMNS[num
                         {papers.length}
                     </Badge>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-background shadow-sm">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-background shadow-sm"
+                    onClick={() => onMovePapers(column.id)}
+                    title={`Move papers to ${column.title}`}
+                >
                     <Plus className="h-4 w-4" />
                 </Button>
             </div>

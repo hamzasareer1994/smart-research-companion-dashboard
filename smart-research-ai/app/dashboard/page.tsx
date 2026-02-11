@@ -37,6 +37,9 @@ export default function DashboardOverview() {
                 ])
 
                 setQuotas(quotaData)
+                if (quotaData.credits !== undefined) {
+                    useUserStore.getState().updateCredits(quotaData.credits)
+                }
                 setStats({
                     projects: projects.length,
                     papers: projects.reduce((acc: number, p: any) => acc + (p.paper_count || 0), 0),

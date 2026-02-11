@@ -58,22 +58,47 @@ export function ChatSheet({
     const [isMultiPaper, setIsMultiPaper] = useState(false)
     const [isPaperSelectorOpen, setIsPaperSelectorOpen] = useState(false)
     const [selectedPaperIds, setSelectedPaperIds] = useState<string[]>([])
+    const [isLoading, setIsLoading] = useState(false)
     const isPremium = user?.tier === "professor" || user?.tier === "researcher"
 
-    const handleSend = () => {
-        if (!input.trim()) return
+    const handleSend = async () => {
+        if (!input.trim() || isLoading) return
 
         const userMsg: Message = { role: "user", content: input }
         setMessages(prev => [...prev, userMsg])
         setInput("")
+        setIsLoading(true)
 
-        // Mock assistant response
-        setTimeout(() => {
+        try {
+            const response = await fetch('/api/v1/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${JSON.parse(localStorage.getItem("smart-research-storage") || "{}")?.state?.user?.access_token}`
+                },
+                body: JSON.stringify({
+                    query: input,
+                    paper_ids: selectedPaperIds.length > 0 ? selectedPaperIds : undefined,
+                    project_id: contextId
+                })
+            })
+
+            if (!response.ok) throw new Error('Chat failed')
+
+            const data = await response.json()
             setMessages(prev => [...prev, {
                 role: "assistant",
-                content: `Analyzing ${isMultiPaper ? "multiple papers" : "the current paper"} for: "${input}"... This is a mock response. Integration with AI service coming soon.`
+                content: data.response
             }])
-        }, 1000)
+        } catch (error) {
+            console.error(error)
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: "Sorry, I encountered an error. Please try again."
+            }])
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -144,9 +169,13 @@ export function ChatSheet({
                                 size="icon"
                                 className="h-9 w-9 rounded-xl shadow-lg shadow-primary/20"
                                 onClick={handleSend}
-                                disabled={!input.trim()}
+                                disabled={!input.trim() || isLoading}
                             >
-                                <Send className="h-4 w-4" />
+                                {isLoading ? (
+                                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <Send className="h-4 w-4" />
+                                )}
                             </Button>
                         </div>
                     </div>

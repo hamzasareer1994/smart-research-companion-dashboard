@@ -1,21 +1,9 @@
-import { User } from "@/lib/store";
-
-const getErrorMessage = async (response: Response) => {
-    try {
-        const data = await response.json();
-        return data.detail || data.message || "An error occurred";
-    } catch {
-        return response.statusText || "An error occurred";
-    }
-};
+import { apiClient } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 
 export const userService = {
     async getMe(token: string) {
-        const response = await fetch("/api/v1/me", {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            },
-        });
+        const response = await apiClient("/api/v1/me");
 
         if (!response.ok) {
             const message = await getErrorMessage(response);
@@ -26,11 +14,7 @@ export const userService = {
     },
 
     async getQuotas(token: string) {
-        const response = await fetch("/api/v1/user/quotas", {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            },
-        });
+        const response = await apiClient("/api/v1/user/quotas");
 
         if (!response.ok) {
             const message = await getErrorMessage(response);

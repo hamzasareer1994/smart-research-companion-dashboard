@@ -19,7 +19,7 @@ interface Paper {
     authors: string[]
     year: number
     citations: number
-    status: "to_read" | "reading" | "complete" | "key_paper"
+    status: "to_read" | "reading" | "completed" | "failed"
 }
 
 interface PaperGalleryViewProps {
@@ -48,11 +48,6 @@ export function PaperGalleryView({ papers, onAction }: PaperGalleryViewProps) {
                             <div className="flex-1" />
                             <div className="h-2 w-2 rounded-full bg-primary/40 mx-auto" />
                         </div>
-                        {paper.status === 'key_paper' && (
-                            <Badge className="absolute top-2 left-2 bg-purple-500 hover:bg-purple-600 gap-1">
-                                <Award className="h-3 w-3" /> Key
-                            </Badge>
-                        )}
                     </div>
 
                     <CardHeader className="p-4 pb-2">
@@ -73,7 +68,7 @@ export function PaperGalleryView({ papers, onAction }: PaperGalleryViewProps) {
 
                         <div className="flex items-center gap-2 mt-auto pt-2 border-t border-dashed">
                             <Badge variant="outline" className="text-[10px] gap-1 px-1.5 h-5">
-                                <Quote className="h-2.5 w-2.5" /> {paper.citations.toLocaleString()}
+                                <Quote className="h-2.5 w-2.5" /> {(paper.citations ?? 0).toLocaleString()}
                             </Badge>
                             <div className="flex gap-1 ml-auto">
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-500" onClick={() => onAction("chat", paper.id)}>

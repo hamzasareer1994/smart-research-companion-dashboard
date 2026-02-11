@@ -13,8 +13,11 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { FileText, Trash2, AlertCircle } from "lucide-react"
+import { FileText, Trash2, AlertCircle, Eye, X } from "lucide-react"
 import { toast } from "sonner"
+import { PDFViewerModal } from "./pdf-viewer-modal"
+import { projectService } from "@/services/project"
+import { useParams } from "next/navigation"
 
 interface DeletePapersModalProps {
     isOpen: boolean
@@ -29,8 +32,12 @@ export function DeletePapersModal({
     papers,
     onDelete
 }: DeletePapersModalProps) {
+    const params = useParams()
+    const projectId = params.id as string
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [isDeleting, setIsDeleting] = useState(false)
+    const [viewerPaper, setViewerPaper] = useState<{ title: string, storage_url: string | null } | null>(null)
+    const [isViewerOpen, setIsViewerOpen] = useState(false)
 
     const togglePaper = (paperId: string) => {
         setSelectedIds(prev =>
@@ -114,7 +121,7 @@ export function DeletePapersModal({
                                             checked={selectedIds.includes(paper.id)}
                                             onCheckedChange={() => togglePaper(paper.id)}
                                         />
-                                        <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0" onClick={() => togglePaper(paper.id)}>
                                             <h4 className="text-sm font-semibold leading-tight mb-1">
                                                 {paper.title}
                                             </h4>
@@ -128,10 +135,47 @@ export function DeletePapersModal({
                                                 )}
                                             </div>
                                         </div>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setViewerPaper({ title: paper.title, storage_url: paper.storage_url })
+                                                    setIsViewerOpen(true)
+                                                }}
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                onClick={async (e) => {
+                                                    e.stopPropagation()
+                                                    if (confirm(`Are you sure you want to delete "${paper.title}"?`)) {
+                                                        try {
+                                                            await onDelete([paper.id])
+                                                        } catch (err) {
+                                                            console.error(err)
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </ScrollArea>
+
+                        <PDFViewerModal
+                            isOpen={isViewerOpen}
+                            onOpenChange={setIsViewerOpen}
+                            paper={viewerPaper}
+                        />
 
                         {selectedIds.length > 0 && (
                             <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">

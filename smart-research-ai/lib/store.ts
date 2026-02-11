@@ -9,6 +9,7 @@ export interface User {
     tier: UserTier
     credits: number
     access_token: string
+    refresh_token: string
     full_name?: string
 }
 

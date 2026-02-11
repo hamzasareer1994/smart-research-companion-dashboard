@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Sparkles, Plus, ExternalLink, RefreshCcw } from "lucide-react"
 import { searchService } from "@/services/search"
+import { projectService } from "@/services/project"
 import { toast } from "sonner"
 
 interface SuggestedPaper {
@@ -15,22 +16,42 @@ interface SuggestedPaper {
     year: number
     citations: number
     relevance: string
+    url: string
+    rawPaper: any // Store original metadata for adding
 }
 
 interface SmartSuggestionsProps {
     projectId: string
     papers: any[]
     projectTitle?: string
+    onPaperAdded?: () => void
 }
 
-export function SmartSuggestionsPanel({ projectId, papers, projectTitle }: SmartSuggestionsProps) {
+export function SmartSuggestionsPanel({ projectId, papers, projectTitle, onPaperAdded }: SmartSuggestionsProps) {
     const [suggestions, setSuggestions] = useState<SuggestedPaper[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isRefreshing, setIsRefreshing] = useState(false)
+    const [addingId, setAddingId] = useState<string | null>(null)
 
-    const fetchSuggestions = async () => {
-        if (!projectTitle) return
+    const fetchSuggestions = async (force = false) => {
+        if (!projectTitle || !projectId) return
 
+        // 1. Check Cache first if not forcing refresh
+        if (!force) {
+            const cached = localStorage.getItem(`suggestions_${projectId}`)
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached)
+                    setSuggestions(parsed)
+                    setIsLoading(false)
+                    return
+                } catch (e) {
+                    localStorage.removeItem(`suggestions_${projectId}`)
+                }
+            }
+        }
+
+        setIsLoading(true)
         try {
             // Use FREE sources only (arXiv, CrossRef, PubMed)
             // Filter for high-impact papers (1000+ citations)
@@ -45,9 +66,10 @@ export function SmartSuggestionsPanel({ projectId, papers, projectTitle }: Smart
                 limit: 10  // Get 10 to have better selection
             })
 
-            // Take only top 5 after filtering
+            // Take only top 5 after filtering duplicates already in project
+            const existingPaperIds = new Set(papers.map(p => p.id))
             const highImpactPapers = response.results
-                .filter(paper => paper.citations >= 1000)
+                .filter(paper => paper.citations >= 1000 && !existingPaperIds.has(paper.id))
                 .slice(0, 5)
 
             const formattedSuggestions: SuggestedPaper[] = highImpactPapers.map((paper, idx) => ({
@@ -60,10 +82,14 @@ export function SmartSuggestionsPanel({ projectId, papers, projectTitle }: Smart
                     ? `Highly relevant to "${projectTitle}"`
                     : idx === 1
                         ? "Recent advance in your research area"
-                        : "Related work worth exploring"
+                        : "Related work worth exploring",
+                url: paper.url || `https://doi.org/${paper.doi}` || "#",
+                rawPaper: paper
             }))
 
             setSuggestions(formattedSuggestions)
+            // Save to Cache
+            localStorage.setItem(`suggestions_${projectId}`, JSON.stringify(formattedSuggestions))
         } catch (error: any) {
             console.error("Failed to fetch suggestions:", error)
             toast.error("Could not load AI suggestions")
@@ -75,11 +101,46 @@ export function SmartSuggestionsPanel({ projectId, papers, projectTitle }: Smart
 
     useEffect(() => {
         fetchSuggestions()
-    }, [projectTitle])
+    }, [projectTitle, projectId])
 
     const handleRefresh = () => {
         setIsRefreshing(true)
-        fetchSuggestions()
+        fetchSuggestions(true)
+    }
+
+    // Sync localStorage when suggestions state changes locally (e.g. after adding)
+    useEffect(() => {
+        if (!isLoading && suggestions.length > 0 && projectId) {
+            localStorage.setItem(`suggestions_${projectId}`, JSON.stringify(suggestions))
+        }
+    }, [suggestions, projectId, isLoading])
+
+    const handleAddPaper = async (paper: SuggestedPaper) => {
+        setAddingId(paper.id)
+        try {
+            const result = await projectService.addPaperToProject(projectId, paper.rawPaper)
+
+            if (result && result.status === 'duplicate') {
+                toast.warning("This paper is already in your project")
+                // Still remove from suggestions locally as it's already there
+                setSuggestions(prev => prev.filter(p => p.id !== paper.id))
+                return
+            }
+
+            toast.success("Added to project")
+
+            // Remove from suggestions locally
+            setSuggestions(prev => prev.filter(p => p.id !== paper.id))
+
+            // Trigger parent refresh
+            if (onPaperAdded) {
+                onPaperAdded()
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to add paper")
+        } finally {
+            setAddingId(null)
+        }
     }
 
 
@@ -142,15 +203,17 @@ export function SmartSuggestionsPanel({ projectId, papers, projectTitle }: Smart
                                         size="icon"
                                         variant="secondary"
                                         className="h-7 w-7 rounded-md"
-                                        onClick={() => toast.success("Paper added to project")}
+                                        onClick={() => handleAddPaper(paper)}
+                                        disabled={addingId === paper.id}
                                     >
-                                        <Plus className="h-3 w-3" />
+                                        <Plus className={`h-3 w-3 ${addingId === paper.id ? 'animate-spin' : ''}`} />
                                     </Button>
                                     <Button
                                         size="icon"
                                         variant="ghost"
                                         className="h-7 w-7 rounded-md"
-                                        onClick={() => window.open(`https://openalex.org/${paper.id}`, '_blank')}
+                                        onClick={() => window.open(paper.url, '_blank')}
+                                        disabled={!paper.url || paper.url === "#"}
                                     >
                                         <ExternalLink className="h-3 w-3" />
                                     </Button>

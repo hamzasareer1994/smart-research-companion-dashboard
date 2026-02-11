@@ -1,31 +1,32 @@
-import { useUserStore, SearchRequest, SearchResponse } from "@/lib/store"
+import { apiClient } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 
 export const searchService = {
-    async searchPapers(request: SearchRequest): Promise<SearchResponse> {
-        const user = useUserStore.getState().user
-        const accessToken = user?.access_token
-
-        const response = await fetch("/api/v1/search/papers", {
+    async searchPapers(data: any) {
+        const response = await apiClient("/api/v1/search/cite", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
-            },
-            body: JSON.stringify(request)
-        })
+            body: JSON.stringify(data),
+        });
 
         if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.detail || "Search failed")
+            const message = await getErrorMessage(response);
+            throw new Error(message);
         }
 
-        const data: SearchResponse = await response.json()
+        return response.json();
+    },
 
-        // Sync credits if returned
-        if (data.credits !== undefined && data.credits !== null) {
-            useUserStore.getState().updateCredits(data.credits)
+    async semanticSearch(query: string, projectId?: string) {
+        const response = await apiClient("/api/v1/search/semantic", {
+            method: "POST",
+            body: JSON.stringify({ query, project_id: projectId }),
+        });
+
+        if (!response.ok) {
+            const message = await getErrorMessage(response);
+            throw new Error(message);
         }
 
-        return data
+        return response.json();
     }
-}
+};

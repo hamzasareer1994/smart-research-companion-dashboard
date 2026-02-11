@@ -28,7 +28,7 @@ interface Paper {
     authors: string[]
     year: number
     citations: number
-    status: "to_read" | "reading" | "complete" | "key_paper"
+    status: "processing" | "completed" | "failed"
 }
 
 interface PaperTableViewProps {
@@ -56,10 +56,9 @@ export function PaperTableView({ papers, onAction }: PaperTableViewProps) {
 
     const getStatusBadge = (status: Paper["status"]) => {
         switch (status) {
-            case "to_read": return <Badge variant="secondary">To Read</Badge>
-            case "reading": return <Badge variant="default" className="bg-blue-500">Reading</Badge>
-            case "complete": return <Badge variant="default" className="bg-green-500">Complete</Badge>
-            case "key_paper": return <Badge variant="default" className="bg-purple-500">Key Paper</Badge>
+            case "processing": return <Badge variant="secondary">Reading</Badge>
+            case "completed": return <Badge variant="default" className="bg-green-500">Done Reading</Badge>
+            case "failed": return <Badge variant="destructive">Failed</Badge>
         }
     }
 
@@ -93,7 +92,6 @@ export function PaperTableView({ papers, onAction }: PaperTableViewProps) {
                         <TableRow key={paper.id} className="group hover:bg-muted/30">
                             <TableCell className="font-medium">
                                 <div className="flex items-center gap-2">
-                                    {paper.status === 'key_paper' && <Star className="h-3 w-3 text-purple-500 fill-current" />}
                                     <span className="line-clamp-1">{paper.title}</span>
                                 </div>
                             </TableCell>
@@ -101,7 +99,7 @@ export function PaperTableView({ papers, onAction }: PaperTableViewProps) {
                                 {paper.authors[0]} {paper.authors.length > 1 && `+${paper.authors.length - 1}`}
                             </TableCell>
                             <TableCell>{paper.year}</TableCell>
-                            <TableCell className="text-right font-mono">{paper.citations.toLocaleString()}</TableCell>
+                            <TableCell className="text-right font-mono">{(paper.citations ?? 0).toLocaleString()}</TableCell>
                             <TableCell>{getStatusBadge(paper.status)}</TableCell>
                             <TableCell className="text-right">
                                 <div className="flex justify-end gap-1">
