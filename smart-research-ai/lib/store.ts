@@ -1,15 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type UserTier = 'student' | 'professor' | 'researcher'
+export type UserTier = 'student' | 'professor' | 'researcher' | 'payg' | 'pro'
 
 export interface User {
     id: string
     email: string
-    tier: UserTier
+    tier: UserTier | string
     credits: number
+    credit_balance_cents?: number
     access_token: string
-    refresh_token: string
+    refresh_token?: string
     full_name?: string
 }
 
@@ -76,14 +77,20 @@ export const useUserStore = create<UserState>()(
             setUser: (user) => set({
                 user: {
                     ...user,
-                    credits: user.credits ?? 128000
+                    tier: user.tier || 'student',
+                    credits: user.credits ?? 0,
+                    credit_balance_cents: user.credit_balance_cents ?? (user.credits ? user.credits * 100 : 0)
                 },
                 isAuthenticated: true
             }),
             clearUser: () => set({ user: null, isAuthenticated: false }),
             updateCredits: (balance) =>
                 set((state) => ({
-                    user: state.user ? { ...state.user, credits: balance } : null
+                    user: state.user ? { 
+                        ...state.user, 
+                        credits: balance,
+                        credit_balance_cents: balance * 100 
+                    } : null
                 })),
             addSearchHistory: (query) =>
                 set((state) => {

@@ -1,27 +1,27 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+    Send, 
+    Bot, 
+    User, 
+    Plus, 
+    Trash2, 
+    Download, 
+    Sparkles, 
+    Database, 
+    ChevronLeft, 
+    MessageSquare, 
+    Loader2,
+    X,
+    Clock,
+    Paperclip
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-    Send,
-    Bot,
-    User,
-    Plus,
-    Trash2,
-    Download,
-    Settings,
-    Sparkles,
-    Database,
-    ChevronLeft,
-    MessageSquare,
-    MoreVertical,
-    Loader2
-} from "lucide-react"
 import { ContextSelector } from "./context-selector"
-import { UsageBar } from "@/components/ui/usage-bar"
 import { useUserStore } from "@/lib/store"
 import { apiClient } from "@/lib/api"
 import { toast } from "sonner"
@@ -48,33 +48,28 @@ interface ChatSession {
 
 export function GlobalChat() {
     const { user } = useUserStore()
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        {
-            id: "1",
-            role: "assistant",
-            content: "Hello! I am your Research Companion. Choose your context and let's start analyzing your library.",
-            timestamp: new Date()
-        }
-    ])
+    const [messages, setMessages] = useState<ChatMessage[]>([])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-    const [isContextModalOpen, setIsContextModalOpen] = useState(true)
-
-    // Context State
+    const [isContextModalOpen, setIsContextModalOpen] = useState(false)
     const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
     const [selectedPaperIds, setSelectedPaperIds] = useState<string[]>([])
-
-    // Sessions
     const [sessions, setSessions] = useState<ChatSession[]>([])
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
-    const [usage, setUsage] = useState(0)
-
     const scrollRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         fetchSessions()
-        fetchQuota()
+        // Initial welcome message if no session
+        if (!currentSessionId && messages.length === 0) {
+            setMessages([{
+                id: "initial",
+                role: "assistant",
+                content: "Greetings researcher. I'm your AI Research Engine. Choose a context from your projects and let's begin synthesizing data.",
+                timestamp: new Date()
+            }])
+        }
     }, [])
 
     useEffect(() => {
@@ -100,20 +95,6 @@ export function GlobalChat() {
         }
     }
 
-    const fetchQuota = async () => {
-        try {
-            const res = await apiClient("/api/v1/user/quotas")
-            if (res.ok) {
-                const data = await res.json()
-                const creditQuota = data.find((q: any) => q.feature === "credits")
-                if (creditQuota) {
-                    const pct = (creditQuota.used / creditQuota.limit) * 100
-                    setUsage(Math.round(pct))
-                }
-            }
-        } catch (error) { }
-    }
-
     const selectSession = async (sessionId: string) => {
         setIsLoading(true)
         setCurrentSessionId(sessionId)
@@ -121,15 +102,10 @@ export function GlobalChat() {
             const res = await apiClient(`/api/v1/chat/sessions/${sessionId}`)
             if (res.ok) {
                 const data = await res.json()
-                setMessages(data.history.length > 0 ? data.history.map((m: any) => ({
+                setMessages(data.history.map((m: any) => ({
                     ...m,
                     timestamp: new Date(m.timestamp)
-                })) : [{
-                    id: "welcome",
-                    role: "assistant",
-                    content: `Welcome back to "${data.title}". How can I help with your research?`,
-                    timestamp: new Date()
-                }])
+                })))
                 setSelectedProjectIds(data.project_ids || [])
                 setSelectedPaperIds(data.paper_ids || [])
             }
@@ -140,25 +116,21 @@ export function GlobalChat() {
         }
     }
 
-    const saveHistory = async (newMessages: ChatMessage[], sessionId: string) => {
-        try {
-            await apiClient(`/api/v1/chat/sessions/${sessionId}`, {
-                method: "PATCH",
-                body: JSON.stringify({
-                    history: newMessages
-                })
-            })
-        } catch (error) {
-            console.error("Failed to save history")
-        }
-    }
-
     const handleSend = async () => {
         if (!input.trim() || isLoading) return
 
-        let sessionId = currentSessionId
+        const userMsg: ChatMessage = {
+            id: Math.random().toString(36).substr(2, 9),
+            role: "user",
+            content: input,
+            timestamp: new Date()
+        }
 
-        // If no session, create one
+        setMessages(prev => [...prev, userMsg])
+        setInput("")
+        setIsLoading(true)
+
+        let sessionId = currentSessionId
         if (!sessionId) {
             try {
                 const newSessionRes = await apiClient("/api/v1/chat/sessions", {
@@ -174,30 +146,9 @@ export function GlobalChat() {
                     sessionId = newSession.id
                     setCurrentSessionId(sessionId)
                     fetchSessions()
-                } else {
-                    toast.error("Failed to create chat session")
-                    return
                 }
-            } catch (error) {
-                console.error("Create session error", error)
-                return
-            }
+            } catch (error) { console.error(error) }
         }
-
-        const userMsg: ChatMessage = {
-            id: Math.random().toString(36).substr(2, 9),
-            role: "user",
-            content: input,
-            timestamp: new Date(),
-            metadata: {
-                projects: selectedProjectIds,
-                papers: selectedPaperIds
-            }
-        }
-
-        setMessages(prev => [...prev, userMsg])
-        setInput("")
-        setIsLoading(true)
 
         try {
             const response = await apiClient("/api/v1/chat", {
@@ -209,36 +160,24 @@ export function GlobalChat() {
                 })
             })
 
-            if (!response.ok) throw new Error("Chat failed")
-
             const data = await response.json()
-
             const aiMsg: ChatMessage = {
                 id: Math.random().toString(36).substr(2, 9),
                 role: "assistant",
                 content: data.response,
                 timestamp: new Date(),
-                metadata: {
-                    tokens: data.tokens
-                }
+                metadata: { tokens: data.tokens }
             }
 
-            setMessages(prev => {
-                const updated = [...prev, aiMsg]
-                if (sessionId) saveHistory(updated, sessionId)
-                return updated
-            })
-
-            fetchQuota()
-
-        } catch (error: any) {
-            toast.error(error.message || "Failed to get AI response")
-            setMessages(prev => [...prev, {
-                id: "error",
-                role: "assistant",
-                content: "I'm sorry, I'm having trouble connecting to the research knowledge base. Please try again later.",
-                timestamp: new Date()
-            }])
+            setMessages(prev => [...prev, aiMsg])
+            if (sessionId) {
+                await apiClient(`/api/v1/chat/sessions/${sessionId}`, {
+                    method: "PATCH",
+                    body: JSON.stringify({ history: [...messages, userMsg, aiMsg] })
+                })
+            }
+        } catch (error) {
+            toast.error("Deep reasoning failure")
         } finally {
             setIsLoading(false)
         }
@@ -251,256 +190,200 @@ export function GlobalChat() {
             setSessions(prev => prev.filter(s => s.id !== id))
             if (currentSessionId === id) {
                 setCurrentSessionId(null)
-                clearChatUI()
+                setMessages([{ id: "new", role: "assistant", content: "New session started. How can I help?", timestamp: new Date() }])
             }
-            toast.success("Session deleted")
-        } catch (error) {
-            toast.error("Failed to delete")
-        }
-    }
-
-    const clearChatUI = () => {
-        setCurrentSessionId(null)
-        setMessages([{
-            id: "initial",
-            role: "assistant",
-            content: "Welcome! Choose a session or start a new research query.",
-            timestamp: new Date()
-        }])
-        setSelectedProjectIds([])
-        setSelectedPaperIds([])
+        } catch (error) { toast.error("Delete failed") }
     }
 
     const exportConversation = () => {
-        const text = messages.map(m => `[${m.role.toUpperCase()}] (${m.timestamp.toLocaleTimeString()}): ${m.content}`).join("\n\n")
+        const text = messages.map(m => `[${m.role.toUpperCase()}] ${m.content}`).join("\n\n")
         const blob = new Blob([text], { type: "text/plain" })
         const url = URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
-        a.download = `research-chat-export-${new Date().toISOString()}.txt`
+        a.download = `research-chat.txt`
         a.click()
-        toast.success("Conversation exported")
     }
 
     return (
-        <div className="flex h-[calc(100vh-6rem)] w-full overflow-hidden bg-background rounded-3xl border shadow-2xl relative">
-            {/* Sidebar - Chat History */}
+        <div className="flex h-[calc(100vh-100px)] w-full overflow-hidden bg-surface rounded-3xl border border-border shadow-xl relative animate-fade-up">
+            {/* History Sidebar */}
             <div className={cn(
-                "h-full border-r bg-muted/20 backdrop-blur-xl transition-all duration-300 flex flex-col",
-                isSidebarOpen ? "w-72" : "w-0 overflow-hidden"
+                "h-full border-r border-border bg-bg2/50 backdrop-blur-xl transition-all duration-300 flex flex-col",
+                isSidebarOpen ? "w-80" : "w-0"
             )}>
-                <div className="p-4 flex items-center justify-between border-b">
-                    <h3 className="text-xs font-black uppercase tracking-widest opacity-40">History</h3>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => setIsSidebarOpen(false)}>
-                        <ChevronLeft className="h-4 w-4" />
+                <div className="p-6 border-b border-border flex items-center justify-between">
+                    <h3 className="text-[0.7rem] font-bold text-ink4 uppercase tracking-[0.2em]">Archive</h3>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setIsSidebarOpen(false)}>
+                        <ChevronLeft size={16} />
                     </Button>
                 </div>
 
-                <div className="p-3">
-                    <Button className="w-full justify-start gap-2 h-11 rounded-xl font-bold bg-primary/10 text-primary hover:bg-primary/20 border-none shadow-none" onClick={clearChatUI}>
-                        <Plus className="h-4 w-4" /> New Research Session
+                <div className="p-4">
+                    <Button 
+                        onClick={() => { setCurrentSessionId(null); setMessages([{ id: "new", role: "assistant", content: "New workspace ready.", timestamp: new Date() }]); }}
+                        className="w-full justify-start gap-2 h-11 rounded-xl bg-accent text-white font-bold text-[0.85rem] shadow-lg shadow-accent/10"
+                    >
+                        <Plus size={18} /> New Research Session
                     </Button>
                 </div>
 
-                <ScrollArea className="flex-1 p-2">
-                    <div className="space-y-1">
+                <ScrollArea className="flex-1 px-4 pb-4">
+                    <div className="space-y-2">
                         {sessions.map(s => (
-                            <div
-                                key={s.id}
-                                className={cn(
-                                    "p-3 rounded-2xl cursor-pointer group transition-all relative",
-                                    currentSessionId === s.id ? "bg-background border shadow-sm" : "hover:bg-muted/50"
-                                )}
+                            <div 
+                                key={s.id} 
                                 onClick={() => selectSession(s.id)}
+                                className={cn(
+                                    "p-4 rounded-2xl cursor-pointer group transition-all relative border",
+                                    currentSessionId === s.id ? "bg-white border-accent/20 shadow-md" : "border-transparent hover:bg-white/50"
+                                )}
                             >
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="text-xs font-bold truncate max-w-[140px] font-sans">{s.title}</span>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 opacity-0 group-hover:opacity-40 hover:opacity-100 hover:text-destructive"
-                                        onClick={(e) => deleteSession(s.id, e)}
-                                    >
-                                        <Trash2 className="h-3 w-3" />
-                                    </Button>
+                                <div className="flex items-start justify-between mb-1">
+                                    <span className="text-[0.85rem] font-bold text-ink truncate leading-tight w-4/5">{s.title}</span>
+                                    <button onClick={e => deleteSession(s.id, e)} className="text-ink4 hover:text-red opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={14} /></button>
                                 </div>
-                                <p className="text-[10px] opacity-60 truncate font-medium">{s.lastMessage}</p>
+                                <div className="flex items-center gap-2 text-[0.65rem] text-ink4">
+                                    <Clock size={10} /> {s.timestamp.toLocaleDateString()}
+                                </div>
                             </div>
                         ))}
                     </div>
                 </ScrollArea>
-
-                <div className="p-4 border-t space-y-4">
-                    <UsageBar usage={usage} label="Research Credits" />
-                    <div className="flex items-center gap-2 p-3 rounded-2xl bg-card border shadow-sm">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src="/avatar.png" />
-                            <AvatarFallback>{user?.full_name?.charAt(0) || "U"}</AvatarFallback>
+                
+                <div className="p-6 border-t border-border bg-bg2/30">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 border border-border shadow-sm">
+                            <AvatarFallback className="bg-gold-bg text-gold font-bold">{user?.full_name?.charAt(0) || "R"}</AvatarFallback>
                         </Avatar>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-[10px] font-bold truncate">{user?.full_name || "Guest Researcher"}</p>
-                            <p className="text-[8px] opacity-60 uppercase tracking-tighter font-black">{user?.tier || "Free"} Plan</p>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[0.8rem] font-bold text-ink truncate">{user?.full_name || "Guest Researcher"}</p>
+                            <p className="text-[0.6rem] text-ink4 uppercase tracking-widest font-black">{user?.tier || "Basic"} Membership</p>
                         </div>
-                        <Settings className="h-4 w-4 opacity-40 hover:opacity-100 cursor-pointer" />
                     </div>
                 </div>
             </div>
 
-            {/* Side Toggle if hidden */}
-            {!isSidebarOpen && (
-                <div className="absolute left-4 top-4 z-20">
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl shadow-lg" onClick={() => setIsSidebarOpen(true)}>
-                        <MessageSquare className="h-5 w-5" />
-                    </Button>
-                </div>
-            )}
-
-            {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col relative bg-background/50 font-sans">
+            {/* Main Workspace */}
+            <div className="flex-1 flex flex-col relative bg-surface overflow-hidden">
                 {/* Header */}
-                <div className="h-16 px-6 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-10">
+                <div className="h-[70px] px-8 flex items-center justify-between border-b border-border bg-surface/80 backdrop-blur-md sticky top-0 z-20">
                     <div className="flex items-center gap-4">
-                        <div className="flex flex-col">
+                        {!isSidebarOpen && <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)} className="mr-2"><MessageSquare size={18} /></Button>}
+                        <div>
                             <div className="flex items-center gap-2">
-                                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-                                <h1 className="text-sm font-black italic tracking-tighter uppercase leading-none">AI Research Engine</h1>
+                                <Sparkles size={16} className="text-gold animate-pulse" />
+                                <h1 className="text-sm font-black uppercase tracking-[0.1em] text-ink">AI Research Engine</h1>
+                                <Badge className="bg-teal-bg text-teal border-teal/10 text-[0.6rem] font-black tracking-widest px-1.5 ml-2">GROUNDED RAG</Badge>
                             </div>
-                            <div className="flex items-center gap-2 mt-1">
-                                <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
-                                <div className="text-[10px] font-bold text-muted-foreground flex items-center gap-1">
-                                    {selectedProjectIds.length === 0 ? "General Knowledge" : (
-                                        <>Grounded in <span className="text-primary">{selectedProjectIds.length} Projects</span></>
-                                    )}
-                                </div>
-                            </div>
+                            <p className="text-[0.7rem] text-ink4 mt-0.5 font-bold uppercase tracking-wider">
+                                {selectedProjectIds.length > 0 ? `Consulting ${selectedProjectIds.length} projects` : "General Academic Intelligence"}
+                            </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" className="h-9 rounded-xl font-bold flex items-center gap-2" onClick={() => setIsContextModalOpen(true)}>
-                            <Database className="h-4 w-4 text-primary" />
-                            Change Context
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" onClick={() => setIsContextModalOpen(true)} className="rounded-full h-9 border-border bg-bg2 text-[0.75rem] font-bold flex items-center gap-2 hover:bg-accent-light hover:text-accent hover:border-accent/10 transition-all">
+                            <Database size={14} /> Context Selector
                         </Button>
-                        <div className="w-px h-4 bg-border mx-2" />
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:text-primary" onClick={exportConversation}>
-                            <Download className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive" onClick={clearChatUI}>
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="w-[1px] h-6 bg-border mx-1" />
+                        <Button variant="ghost" size="icon" onClick={exportConversation} className="h-9 w-9 text-ink4 hover:text-ink"><Download size={18} /></Button>
                     </div>
                 </div>
 
                 {/* Messages */}
-                <ScrollArea className="flex-1 px-6 pt-6 pb-24">
-                    <div className="max-w-3xl mx-auto space-y-8">
-                        {messages.map((m) => (
-                            <div key={m.id} className={cn(
-                                "flex gap-4 p-4 rounded-3xl transition-all relative group",
-                                m.role === "assistant" ? "bg-muted/10 border border-transparent hover:border-muted-foreground/10" : "flex-row-reverse"
-                            )}>
-                                <div className={cn(
-                                    "h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
-                                    m.role === "assistant" ? "bg-gradient-to-br from-primary to-purple-600 text-white" : "bg-card border"
-                                )}>
-                                    {m.role === "assistant" ? <Bot className="h-6 w-6" /> : <User className="h-6 w-6" />}
-                                </div>
-                                <div className={cn(
-                                    "flex-1 space-y-2",
-                                    m.role === "user" ? "text-right" : ""
-                                )}>
+                <ScrollArea className="flex-1 p-8">
+                    <div className="max-w-4xl mx-auto space-y-12">
+                        <AnimatePresence>
+                            {messages.map((m, idx) => (
+                                <motion.div 
+                                    key={m.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className={cn(
+                                        "flex gap-6",
+                                        m.role === "user" ? "flex-row-reverse" : ""
+                                    )}
+                                >
                                     <div className={cn(
-                                        "text-sm leading-relaxed whitespace-pre-wrap font-medium",
-                                        m.role === "user" ? "text-foreground/90" : "text-foreground"
+                                        "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
+                                        m.role === "assistant" ? "bg-accent text-white" : "bg-gold-bg text-gold shadow-gold/10"
                                     )}>
-                                        {m.content}
+                                        {m.role === "assistant" ? <Bot size={22} /> : <User size={22} />}
                                     </div>
                                     <div className={cn(
-                                        "flex items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity",
-                                        m.role === "user" ? "justify-end" : "justify-start"
+                                        "flex-1 max-w-[85%]",
+                                        m.role === "user" ? "text-right" : ""
                                     )}>
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">
-                                            {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                        {m.metadata?.tokens && (
-                                            <>
-                                                <span className="h-1 w-1 bg-muted-foreground rounded-full" />
-                                                <span className="text-[10px] font-bold text-primary">{m.metadata.tokens} Tokens</span>
-                                            </>
-                                        )}
+                                        <div className={cn(
+                                            "inline-block rounded-3xl p-6 text-[0.95rem] leading-relaxed shadow-sm",
+                                            m.role === "assistant" ? "bg-bg2/50 border border-border text-ink" : "bg-accent text-white font-medium"
+                                        )}>
+                                            {m.content}
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-3 opacity-30 group-hover:opacity-100 transition-opacity px-2">
+                                            <span className="text-[0.65rem] font-bold uppercase tracking-widest">{m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            {m.metadata?.tokens && <span className="text-[0.65rem] font-bold text-accent uppercase tracking-widest">• {m.metadata.tokens} Tokens</span>}
+                                        </div>
                                     </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                        {isLoading && (
+                            <div className="flex gap-6">
+                                <div className="w-10 h-10 rounded-2xl bg-accent text-white flex items-center justify-center animate-pulse"><Bot size={22} /></div>
+                                <div className="bg-bg2/50 border border-border rounded-3xl p-6 flex items-center gap-3">
+                                    <div className="flex gap-1.5">
+                                        <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                        <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                        <div className="w-2 h-2 bg-accent rounded-full animate-bounce" />
+                                    </div>
+                                    <span className="text-[0.75rem] font-bold text-accent uppercase tracking-widest ml-2">Indexing Knowledge...</span>
                                 </div>
                             </div>
-                        ))}
-                        <div ref={scrollRef} />
+                        )}
+                        <div ref={scrollRef} className="h-20" />
                     </div>
                 </ScrollArea>
 
-                {/* Input Container */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/95 to-transparent">
-                    <div className="max-w-3xl mx-auto relative group">
-                        {isLoading && (
-                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-background/80 backdrop-blur-sm border px-4 py-2 rounded-full shadow-2xl animate-bounce">
-                                <Loader2Icon className="h-3 w-3 animate-spin text-primary" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">AI Thinking...</span>
-                            </div>
-                        )}
-                        <div className="relative border-2 border-muted-foreground/10 group-focus-within:border-primary/30 rounded-3xl bg-background shadow-2xl transition-all p-1.5 flex items-center gap-2">
-                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl hover:bg-muted/50" onClick={() => setIsContextModalOpen(true)}>
-                                <Database className="h-5 w-5 text-muted-foreground" />
-                            </Button>
-                            <Input
-                                placeholder="Consult your research library..."
-                                className="border-none bg-transparent h-12 shadow-none focus-visible:ring-0 text-base font-medium placeholder:text-muted-foreground/50"
+                {/* Input Panel */}
+                <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-surface via-surface/90 to-transparent pt-16">
+                    <div className="max-w-4xl mx-auto relative">
+                        <div className="bg-white border-2 border-border focus-within:border-accent/40 rounded-[2rem] shadow-2xl p-2 pl-6 flex items-center gap-4 transition-all">
+                            <button onClick={() => setIsContextModalOpen(true)} className="text-ink4 hover:text-accent transition-colors"><Paperclip size={20} /></button>
+                            <input 
+                                placeholder="Query the research library..."
                                 value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                                onChange={e => setInput(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
+                                className="flex-1 bg-transparent border-none focus:ring-0 text-[1rem] font-medium h-12 text-ink placeholder:text-ink4/50"
                             />
-                            <Button
-                                className="h-10 px-6 rounded-2xl font-bold bg-gradient-to-r from-primary to-purple-600 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+                            <Button 
                                 onClick={handleSend}
                                 disabled={!input.trim() || isLoading}
+                                className="bg-accent text-white h-11 px-8 rounded-full font-bold flex items-center gap-2 hover:opacity-90 shadow-xl shadow-accent/20"
                             >
-                                <Send className="h-4 w-4 mr-2" />
-                                Ask AI
+                                Send Prompt <Send size={18} />
                             </Button>
                         </div>
+                        <p className="mt-4 text-[0.65rem] text-center text-ink4 font-bold uppercase tracking-[0.3em] opacity-40">
+                            ResearchAI Engine v4.0 • Academic Precision
+                        </p>
                     </div>
-                    <p className="text-[9px] text-center font-black uppercase tracking-[0.2em] opacity-30 mt-4">
-                        Precision RAG • Multi-Context • Grounded Intelligence
-                    </p>
                 </div>
             </div>
 
-            {/* Modals */}
-            <ContextSelector
-                isOpen={isContextModalOpen}
+            {/* Context Selector Modal */}
+            <ContextSelector 
+                isOpen={isContextModalOpen} 
                 onClose={() => setIsContextModalOpen(false)}
                 onConfirm={(projects, papers) => {
                     setSelectedProjectIds(projects)
                     setSelectedPaperIds(papers)
-                    toast.success("Active research context updated")
+                    setIsContextModalOpen(false)
+                    toast.success("Context refined")
                 }}
             />
         </div>
-    )
-}
-
-function Loader2Icon({ className }: { className?: string }) {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={cn("animate-spin", className)}
-        >
-            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-        </svg>
     )
 }

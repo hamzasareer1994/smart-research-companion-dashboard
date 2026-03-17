@@ -1402,46 +1402,40 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 ;
 const plans = [
     {
-        title: "Student",
-        price: "$0",
-        description: "Essential tools for coursework.",
+        title: "PAYG",
+        price: "$20",
+        description: "Pay for what you use. Top up as needed.",
         features: [
-            "128K Credits/mo",
-            "1 Project (10 PDFs)",
-            "100 Papers Search/mo",
-            "Basic Chat"
+            "Advanced Literature Search",
+            "PDF Processing & RAG Chat",
+            "Structured Abstracts",
+            "AI Insights Extraction",
+            "Literature Mapping",
+            "Experiment Planner",
+            "Trend Predictor",
+            "Dataset Discovery",
+            "Contradiction Finder"
         ],
-        cta: "Get Started",
+        cta: "Buy Credits",
         variant: "outline"
     },
     {
-        title: "Professor",
-        price: "$12",
-        description: "For serious academic work.",
+        title: "Pro",
+        price: "$35",
+        description: "Ultimate power for solo researchers.",
         features: [
-            "512K Credits/mo",
-            "5 Projects (10 PDFs each)",
-            "500 Papers Search/mo",
-            "Citation Manager",
-            "Priority Support"
+            "Everything in PAYG",
+            "Auto SLR Engine",
+            "Citation Integrity Scanner",
+            "Hypothesis Generator",
+            "Knowledge Graph of Papers",
+            "Qualitative Interview Analysis",
+            "Statistical Methodology Validator",
+            "Reviewer Simulator"
         ],
-        cta: "Upgrade to Pro",
+        cta: "Go Pro",
         variant: "default",
         popular: true
-    },
-    {
-        title: "Researcher",
-        price: "$30",
-        description: "Unlimited power for labs.",
-        features: [
-            "2M Credits/mo",
-            "Unlimited Projects",
-            "Unlimited Search",
-            "API Access",
-            "Team Collaboration"
-        ],
-        cta: "Contact Sales",
-        variant: "outline"
     }
 ];
 function PricingSection() {
@@ -1458,7 +1452,7 @@ function PricingSection() {
                         children: "Simple Pricing"
                     }, void 0, false, {
                         fileName: "[project]/components/landing/pricing.tsx",
-                        lineNumber: 64,
+                        lineNumber: 58,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -1466,7 +1460,7 @@ function PricingSection() {
                         children: "Invest in Your Intelligence"
                     }, void 0, false, {
                         fileName: "[project]/components/landing/pricing.tsx",
-                        lineNumber: 65,
+                        lineNumber: 59,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1474,13 +1468,13 @@ function PricingSection() {
                         children: "Choose the plan that fits your research needs."
                     }, void 0, false, {
                         fileName: "[project]/components/landing/pricing.tsx",
-                        lineNumber: 68,
+                        lineNumber: 62,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/landing/pricing.tsx",
-                lineNumber: 63,
+                lineNumber: 57,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1495,12 +1489,12 @@ function PricingSection() {
                                     children: "Most Popular"
                                 }, void 0, false, {
                                     fileName: "[project]/components/landing/pricing.tsx",
-                                    lineNumber: 81,
+                                    lineNumber: 75,
                                     columnNumber: 33
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/landing/pricing.tsx",
-                                lineNumber: 80,
+                                lineNumber: 74,
                                 columnNumber: 29
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardHeader"], {
@@ -1510,20 +1504,20 @@ function PricingSection() {
                                         children: plan.title
                                     }, void 0, false, {
                                         fileName: "[project]/components/landing/pricing.tsx",
-                                        lineNumber: 85,
+                                        lineNumber: 79,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                                         children: plan.description
                                     }, void 0, false, {
                                         fileName: "[project]/components/landing/pricing.tsx",
-                                        lineNumber: 86,
+                                        lineNumber: 80,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/landing/pricing.tsx",
-                                lineNumber: 84,
+                                lineNumber: 78,
                                 columnNumber: 25
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1538,13 +1532,13 @@ function PricingSection() {
                                                 children: "/month"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/landing/pricing.tsx",
-                                                lineNumber: 91,
+                                                lineNumber: 85,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/landing/pricing.tsx",
-                                        lineNumber: 89,
+                                        lineNumber: 83,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -1556,25 +1550,25 @@ function PricingSection() {
                                                         className: "mr-2 h-4 w-4 text-primary"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/landing/pricing.tsx",
-                                                        lineNumber: 96,
+                                                        lineNumber: 90,
                                                         columnNumber: 41
                                                     }, this),
                                                     feature
                                                 ]
                                             }, feature, true, {
                                                 fileName: "[project]/components/landing/pricing.tsx",
-                                                lineNumber: 95,
+                                                lineNumber: 89,
                                                 columnNumber: 37
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/components/landing/pricing.tsx",
-                                        lineNumber: 93,
+                                        lineNumber: 87,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/landing/pricing.tsx",
-                                lineNumber: 88,
+                                lineNumber: 82,
                                 columnNumber: 25
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -1584,29 +1578,29 @@ function PricingSection() {
                                     children: plan.cta
                                 }, void 0, false, {
                                     fileName: "[project]/components/landing/pricing.tsx",
-                                    lineNumber: 103,
+                                    lineNumber: 97,
                                     columnNumber: 29
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/landing/pricing.tsx",
-                                lineNumber: 102,
+                                lineNumber: 96,
                                 columnNumber: 25
                             }, this)
                         ]
                     }, plan.title, true, {
                         fileName: "[project]/components/landing/pricing.tsx",
-                        lineNumber: 75,
+                        lineNumber: 69,
                         columnNumber: 21
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/components/landing/pricing.tsx",
-                lineNumber: 73,
+                lineNumber: 67,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/landing/pricing.tsx",
-        lineNumber: 62,
+        lineNumber: 56,
         columnNumber: 9
     }, this);
 }

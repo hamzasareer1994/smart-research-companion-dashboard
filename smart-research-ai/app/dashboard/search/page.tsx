@@ -1,9 +1,27 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+    Search as SearchIcon, 
+    Filter, 
+    LayoutGrid, 
+    List, 
+    History, 
+    ChevronRight, 
+    Quote, 
+    ExternalLink, 
+    Plus, 
+    Check,
+    Library,
+    ArrowRight,
+    FileText,
+    Download,
+    X,
+    Info
+} from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -14,22 +32,6 @@ import {
     DialogTitle,
     DialogDescription
 } from "@/components/ui/dialog"
-import {
-    Search as SearchIcon,
-    Filter,
-    LayoutGrid,
-    Plus,
-    History,
-    FileText,
-    Library,
-    ArrowRight,
-    ExternalLink,
-    List,
-    Check,
-    Quote,
-    ChevronRight,
-    Download
-} from "lucide-react"
 import { searchService } from "@/services/search"
 import { useUserStore, Paper, SearchFilters } from "@/lib/store"
 import { projectService, ProjectResponse } from "@/services/project"
@@ -37,46 +39,36 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 export default function SearchPage() {
+    const { user, searchHistory, addSearchHistory, clearSearchHistory } = useUserStore()
     const [query, setQuery] = useState("")
     const [lastQuery, setLastQuery] = useState("")
     const [results, setResults] = useState<Paper[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [selectedPaperIds, setSelectedPaperIds] = useState<Set<string>>(new Set())
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-
     const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null)
-    const [sources, setSources] = useState<string[]>(["arxiv", "crossref", "pubmed"]) // Default to FREE sources
+    const [sources, setSources] = useState<string[]>(["arxiv", "crossref", "pubmed"])
     const [projects, setProjects] = useState<ProjectResponse[]>([])
     const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
 
-    // Advanced filters state
-    const [showFilters, setShowFilters] = useState(false)
+    // Filters
     const [yearFrom, setYearFrom] = useState(2020)
     const [yearTo, setYearTo] = useState(new Date().getFullYear())
     const [citationsMin, setCitationsMin] = useState(0)
     const [openAccessOnly, setOpenAccessOnly] = useState(false)
-    const [openAlexQuota, setOpenAlexQuota] = useState({ used: 0, limit: 10 })
 
-    const { user, searchHistory, addSearchHistory, clearSearchHistory } = useUserStore()
-
-    const togglePaperSelection = (id: string) => {
-        const newSelected = new Set(selectedPaperIds)
-        if (newSelected.has(id)) {
-            newSelected.delete(id)
-        } else {
-            newSelected.add(id)
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const data = await projectService.getProjects()
+                setProjects(data)
+            } catch (error) {
+                console.error("Failed to fetch projects")
+            }
         }
-        setSelectedPaperIds(newSelected)
-    }
-
-    const selectAll = () => {
-        if (selectedPaperIds.size === results.length && results.length > 0) {
-            setSelectedPaperIds(new Set())
-        } else {
-            setSelectedPaperIds(new Set(results.map(p => p.id)))
-        }
-    }
+        fetchProjects()
+    }, [])
 
     const handleSearch = async () => {
         if (!query.trim()) return
@@ -93,588 +85,316 @@ export default function SearchPage() {
                 filters,
                 sources,
                 page: 1,
-                limit: 10
+                limit: 12
             })
             setResults(response.results)
             addSearchHistory(query)
-            setSelectedPaperIds(new Set()) // Clear selection on new search
-
-            // Update OpenAlex quota if used
-            if (sources.includes("openalex")) {
-                setOpenAlexQuota(prev => ({ ...prev, used: prev.used + 1 }))
-            }
-
+            setSelectedPaperIds(new Set())
+            
             if (response.results.length === 0) {
-                toast.info("No papers found for your query.")
+                toast.info("No results found", { description: "Try adjusting your filters or search terms." })
             }
         } catch (error: any) {
-            toast.error(error.message || "Search failed")
+            toast.error("Search failed", { description: error.message })
         } finally {
             setIsLoading(false)
         }
     }
 
-    const fetchProjects = async () => {
-        try {
-            const data = await projectService.getProjects()
-            setProjects(data)
-        } catch (error) {
-            console.error("Failed to fetch projects")
-        }
+    const togglePaperSelection = (id: string) => {
+        const newSelected = new Set(selectedPaperIds)
+        if (newSelected.has(id)) newSelected.delete(id)
+        else newSelected.add(id)
+        setSelectedPaperIds(newSelected)
     }
 
     const handleAddToProject = async (projectId: string) => {
-        // Handle both single and bulk adding
         const papersToSave = selectedPaperIds.size > 0
             ? results.filter(p => selectedPaperIds.has(p.id))
             : selectedPaper ? [selectedPaper] : []
 
         if (papersToSave.length === 0) return
-
         setIsSaving(true)
         try {
             for (const paper of papersToSave) {
                 await projectService.addPaperToProject(projectId, paper)
             }
-            toast.success(`Successfully added ${papersToSave.length} paper(s) to project`)
+            toast.success("Success", { description: `Added ${papersToSave.length} papers to project.` })
             setIsProjectDialogOpen(false)
             setSelectedPaperIds(new Set())
         } catch (error: any) {
-            toast.error(error.message || "Failed to add papers")
+            toast.error("Failed to add papers", { description: error.message })
         } finally {
             setIsSaving(false)
         }
     }
 
     return (
-        <div className="space-y-6 pb-20">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10 animate-fade-up">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Search</h2>
-                    <p className="text-muted-foreground">
-                        Discover top research across millions of open-source papers.
+                    <h1 className="text-3xl md:text-4xl font-serif text-ink mb-2">
+                        Discovery <em className="italic">Hub</em>
+                    </h1>
+                    <p className="text-ink3 text-[0.95rem] max-w-xl">
+                        Search across millions of academic papers. Our AI aggregates data from arXiv, CrossRef, and more.
                     </p>
                 </div>
                 {searchHistory.length > 0 && (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                            clearSearchHistory()
-                            toast.success("Search history cleared")
-                        }}
-                        className="gap-2"
-                    >
-                        <History className="h-4 w-4" />
-                        Clear History ({searchHistory.length})
+                    <Button variant="outline" size="sm" onClick={clearSearchHistory} className="rounded-full border-border text-ink3 hover:text-ink">
+                        <History size={14} className="mr-2" /> Clear History
                     </Button>
                 )}
             </div>
 
-            {/* Project Selection Dialog */}
-            <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Add to Project</DialogTitle>
-                        <DialogDescription>
-                            {selectedPaperIds.size > 0
-                                ? `Adding ${selectedPaperIds.size} selected papers.`
-                                : `Adding "${selectedPaper?.title}" to project.`}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-2 mt-4">
-                        {projects.length > 0 ? (
-                            projects.map(p => (
-                                <Button
-                                    key={p.id}
-                                    variant="outline"
-                                    className="justify-start h-12"
-                                    onClick={() => handleAddToProject(p.id)}
-                                    disabled={isSaving}
-                                >
-                                    <Library className="mr-3 h-4 w-4 text-primary" />
-                                    <div className="text-left">
-                                        <div className="font-semibold text-xs">{p.name}</div>
-                                        <div className="text-[10px] text-muted-foreground">{p.paper_count} papers</div>
-                                    </div>
+            {/* Search Controls Card */}
+            <div className="bg-surface border border-border rounded-3xl p-6 shadow-sm">
+                <div className="flex flex-col gap-6">
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-ink4" size={20} />
+                            <Input 
+                                placeholder="Search papers, authors, or DOIs..."
+                                className="pl-12 h-12 bg-bg2 border-border rounded-2xl text-[1rem] focus:ring-accent focus:border-accent"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                            />
+                        </div>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="h-12 px-6 rounded-2xl border-dashed flex items-center gap-2">
+                                    <Filter size={18} /> Filters
+                                    {(citationsMin > 0 || openAccessOnly || yearFrom > 2020) && <Badge className="bg-gold text-white ml-2 rounded-full h-5 px-1.5 focus:bg-gold">!</Badge>}
                                 </Button>
-                            ))
-                        ) : (
-                            <div className="text-center p-8 border border-dashed rounded-lg">
-                                <p className="text-sm text-muted-foreground mb-4">No projects found</p>
-                                <Button size="sm" variant="secondary">Create Project</Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 rounded-2xl shadow-2xl border-border p-6" align="end">
+                                <div className="space-y-6">
+                                    <h4 className="font-bold text-ink uppercase text-[0.7rem] tracking-widest border-b pb-2">Advanced Filters</h4>
+                                    
+                                    <div className="space-y-3">
+                                        <label className="text-[0.7rem] font-bold text-ink4 uppercase">Year Range</label>
+                                        <div className="flex gap-2">
+                                            <Input type="number" value={yearFrom} onChange={e => setYearFrom(Number(e.target.value))} className="h-9 rounded-lg" />
+                                            <div className="flex items-center text-ink4">→</div>
+                                            <Input type="number" value={yearTo} onChange={e => setYearTo(Number(e.target.value))} className="h-9 rounded-lg" />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[0.7rem] font-bold text-ink4 uppercase">Min Citations</label>
+                                        <Input type="number" value={citationsMin} onChange={e => setCitationsMin(Number(e.target.value))} className="h-9 rounded-lg" />
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-ink">Open Access Only</label>
+                                        <Checkbox checked={openAccessOnly} onCheckedChange={c => setOpenAccessOnly(!!c)} />
+                                    </div>
+
+                                    <Button variant="outline" className="w-full text-[0.8rem]" onClick={() => { setYearFrom(2020); setCitationsMin(0); setOpenAccessOnly(false); }}>Reset Filters</Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                        <Button onClick={handleSearch} disabled={isLoading} className="h-12 px-8 rounded-2xl bg-accent text-white shadow-lg shadow-accent/20 hover:opacity-90">
+                            {isLoading ? <Loader2 className="animate-spin" /> : "Search"}
+                        </Button>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4 border-t border-border pt-4">
+                        <span className="text-[0.75rem] font-bold text-ink3 uppercase tracking-widest">Active Sources</span>
+                        <div className="flex flex-wrap gap-3">
+                            {["arxiv", "crossref", "pubmed", "semantic_scholar"].map(source => (
+                                <div key={source} className="flex items-center gap-2 group cursor-pointer" onClick={() => {
+                                    if (sources.includes(source)) setSources(sources.filter(s => s !== source))
+                                    else setSources([...sources, source])
+                                }}>
+                                    <Checkbox checked={sources.includes(source)} />
+                                    <span className="text-[0.85rem] text-ink2 group-hover:text-ink transition-colors capitalize">{source.replace('_', ' ')}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Results Area */}
+            <AnimatePresence mode="wait">
+                {isLoading ? (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-20 flex flex-col items-center gap-4">
+                        <div className="animate-spin w-10 h-10 border-4 border-accent border-t-transparent rounded-full" />
+                        <p className="text-ink3 font-serif italic text-lg tracking-wide">Scanning world repositories...</p>
+                    </motion.div>
+                ) : results.length > 0 ? (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                        <div className="flex items-center justify-between border-b border-border pb-4">
+                            <h3 className="text-xl font-serif text-ink">Found {results.length} results</h3>
+                            <div className="flex items-center gap-4">
+                                <div className="bg-bg2 p-1 rounded-lg flex gap-1">
+                                    <Button variant={viewMode === "grid" ? "surface" : "ghost"} size="icon" onClick={() => setViewMode("grid")} className="h-8 w-8 rounded-md"><LayoutGrid size={16} /></Button>
+                                    <Button variant={viewMode === "list" ? "surface" : "ghost"} size="icon" onClick={() => setViewMode("list")} className="h-8 w-8 rounded-md"><List size={16} /></Button>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={() => setSelectedPaperIds(selectedPaperIds.size === results.length ? new Set() : new Set(results.map(r => r.id)))} className="rounded-full text-[0.75rem]">
+                                    {selectedPaperIds.size === results.length ? "Deselect All" : "Select All"}
+                                </Button>
                             </div>
+                        </div>
+
+                        <div className={cn("grid gap-6", viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1")}>
+                            {results.map((paper, idx) => (
+                                <motion.div 
+                                    key={paper.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    onClick={() => setSelectedPaper(paper)}
+                                    className={cn(
+                                        "paper-card bg-surface border border-border rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-accent/30 transition-all cursor-pointer group relative",
+                                        selectedPaperIds.has(paper.id) && "ring-2 ring-accent border-accent/20 bg-accent-light/30"
+                                    )}
+                                >
+                                    <div className="absolute top-4 right-4" onClick={e => { e.stopPropagation(); togglePaperSelection(paper.id); }}>
+                                        <div className={cn("w-5 h-5 rounded border flex items-center justify-center transition-all", selectedPaperIds.has(paper.id) ? "bg-accent border-accent text-white" : "border-ink4 bg-white/50")}>
+                                            {selectedPaperIds.has(paper.id) && <Check size={12} />}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col h-full">
+                                        <div className="mb-4">
+                                            <Badge variant="outline" className="mb-2 text-[0.6rem] uppercase tracking-widest text-ink4 border-border">{paper.source}</Badge>
+                                            <h4 className="text-[1rem] font-bold text-ink leading-tight mb-2 group-hover:text-accent transition-colors line-clamp-2">{paper.title}</h4>
+                                            <p className="text-[0.75rem] text-ink4 italic truncate">{paper.authors.join(", ")}</p>
+                                        </div>
+                                        
+                                        <p className="text-[0.8rem] text-ink3 line-clamp-3 mb-6 leading-relaxed italic border-l-2 border-border pl-3 flex-1">
+                                            {paper.abstract || "No abstract available for this publication."}
+                                        </p>
+
+                                        <div className="flex items-center justify-between border-t border-border pt-4 mt-auto">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-1 text-[0.7rem] font-bold text-ink4">
+                                                    <Quote size={12} /> {paper.citations}
+                                                </div>
+                                                <div className="text-[0.7rem] font-bold text-ink4">{paper.year}</div>
+                                            </div>
+                                            {paper.open_access && <Badge className="bg-teal-bg text-teal text-[0.6rem] font-black uppercase">Open Access</Badge>}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center py-20 text-center space-y-8">
+                        {searchHistory.length > 0 ? (
+                            <div className="w-full max-w-2xl">
+                                <h3 className="text-[0.75rem] font-bold text-ink4 uppercase tracking-widest mb-4">Recent Research Domains</h3>
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    {searchHistory.map((h, i) => (
+                                        <Button key={i} variant="outline" className="rounded-full bg-bg2 border-border text-ink group hover:border-gold" onClick={() => setQuery(h)}>
+                                            <History size={14} className="mr-2 text-ink4 group-hover:text-gold" /> {h}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                <div className="w-20 h-20 bg-bg2 rounded-full flex items-center justify-center mx-auto text-ink4">
+                                    <SearchIcon size={32} />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-serif text-ink">Ready to Explore?</h3>
+                                    <p className="text-ink3 text-[0.9rem] max-w-sm mt-2">Enter keywords to begin searching across world-class digital repositories.</p>
+                                </div>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Float Bar for selected items */}
+            {selectedPaperIds.size > 0 && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 animate-fade-up">
+                    <div className="bg-ink text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-8 border border-white/10 backdrop-blur-xl">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl font-serif italic text-gold">{selectedPaperIds.size}</span>
+                            <span className="text-[0.7rem] font-bold uppercase tracking-wider text-white/50">Papers selected</span>
+                        </div>
+                        <div className="w-[1px] h-6 bg-white/20" />
+                        <div className="flex gap-4">
+                            <Button className="h-10 px-6 rounded-full bg-gold text-white font-bold text-[0.8rem] hover:opacity-90" onClick={() => setIsProjectDialogOpen(true)}>
+                                Add to Project
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-10 w-10 text-white/50 hover:text-white" onClick={() => setSelectedPaperIds(new Set())}>
+                                <X size={20} />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODALS */}
+            <Dialog open={!!selectedPaper} onOpenChange={o => !o && setSelectedPaper(null)}>
+                <DialogContent className="max-w-3xl rounded-3xl border-border p-8 overflow-y-auto max-h-[90vh]">
+                    {selectedPaper && (
+                        <div className="space-y-8">
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="bg-accent-light text-accent border-accent/10">{selectedPaper.source.toUpperCase()}</Badge>
+                                        <Badge className="bg-gold-bg text-gold border-gold/10 font-black">{selectedPaper.citations} CITATIONS</Badge>
+                                    </div>
+                                    <h2 className="text-2xl font-serif text-ink leading-tight">{selectedPaper.title}</h2>
+                                    <p className="text-ink3 italic">{selectedPaper.authors.join(", ")} • {selectedPaper.year}</p>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setSelectedPaper(null)} className="rounded-full"><X size={20} /></Button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h4 className="text-[0.7rem] font-black uppercase tracking-[0.2em] text-ink4 border-b pb-2">Abstract Summary</h4>
+                                <div className="p-6 bg-bg2 rounded-2xl italic text-ink text-[1rem] leading-relaxed relative">
+                                    <Quote size={40} className="absolute -top-3 -left-3 text-gold/10 pointer-events-none" />
+                                    {selectedPaper.abstract || "No abstract available for this entry."}
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                {selectedPaper.url && (
+                                    <Button className="flex-1 h-12 rounded-xl bg-accent text-white font-bold" asChild>
+                                        <a href={selectedPaper.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} className="mr-2" /> View Source</a>
+                                    </Button>
+                                )}
+                                <Button className="flex-1 h-12 rounded-xl bg-gold text-white font-bold" onClick={() => setIsProjectDialogOpen(true)}>
+                                    <Plus size={16} className="mr-2" /> Collector to Project
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+                <DialogContent className="max-w-md rounded-3xl border-border p-6">
+                    <DialogHeader>
+                        <DialogTitle className="font-serif text-xl border-b pb-4">Destination Library</DialogTitle>
+                        <DialogDescription className="text-ink4 pt-4">Choose a workspace to store these papers for AI synthesis.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-3 mt-6">
+                        {projects.length > 0 ? projects.map(p => (
+                            <button key={p.id} onClick={() => handleAddToProject(p.id)} disabled={isSaving} className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-surface hover:bg-bg2 transition-all text-left group">
+                                <div className="w-10 h-10 rounded-xl bg-accent-light text-accent flex items-center justify-center group-hover:scale-110 transition-transform"><Library size={18} /></div>
+                                <div className="flex-1">
+                                    <div className="font-bold text-ink text-[0.9rem] line-clamp-1">{p.name}</div>
+                                    <div className="text-[0.7rem] text-ink4 uppercase tracking-widest font-black">{p.paper_count} papers indexed</div>
+                                </div>
+                                <ChevronRight size={18} className="text-ink4" />
+                            </button>
+                        )) : (
+                            <div className="p-10 text-center border-2 border-dashed border-border rounded-2xl opacity-50">No projects found</div>
                         )}
                     </div>
                 </DialogContent>
             </Dialog>
-
-            {/* Search Bar & Controls */}
-            <Card className="border-primary/20 shadow-sm border-2">
-                <CardContent className="p-6">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search for research papers, authors, or topics..."
-                                    className="pl-9 bg-background focus-visible:ring-primary"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                                />
-                            </div>
-                            <Popover open={showFilters} onOpenChange={setShowFilters}>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" className="border-dashed">
-                                        <Filter className="mr-2 h-4 w-4" />
-                                        Filters
-                                        {(citationsMin > 0 || openAccessOnly || yearFrom > 2020) && (
-                                            <Badge className="ml-2 h-5 px-1.5" variant="secondary">
-                                                {[citationsMin > 0, openAccessOnly, yearFrom > 2020].filter(Boolean).length}
-                                            </Badge>
-                                        )}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80">
-                                    <div className="space-y-4">
-                                        <h4 className="font-medium leading-none text-primary">Advanced Filters</h4>
-                                        <div className="grid gap-4 pt-2">
-                                            {/* Year Range */}
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase text-muted-foreground">Year Range</label>
-                                                <div className="flex gap-2">
-                                                    <Input
-                                                        placeholder="From"
-                                                        className="h-8 text-xs"
-                                                        type="number"
-                                                        value={yearFrom}
-                                                        onChange={(e) => setYearFrom(parseInt(e.target.value) || 2020)}
-                                                        min="1900"
-                                                        max={yearTo}
-                                                    />
-                                                    <Input
-                                                        placeholder="To"
-                                                        className="h-8 text-xs"
-                                                        type="number"
-                                                        value={yearTo}
-                                                        onChange={(e) => setYearTo(parseInt(e.target.value) || new Date().getFullYear())}
-                                                        min={yearFrom}
-                                                        max={new Date().getFullYear()}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Citations Filter */}
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase text-muted-foreground">Min Citations</label>
-                                                <Input
-                                                    placeholder="e.g., 100"
-                                                    className="h-8 text-xs"
-                                                    type="number"
-                                                    value={citationsMin || ""}
-                                                    onChange={(e) => setCitationsMin(parseInt(e.target.value) || 0)}
-                                                    min="0"
-                                                />
-                                            </div>
-
-                                            {/* Open Access Toggle */}
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id="oa"
-                                                    checked={openAccessOnly}
-                                                    onCheckedChange={(checked) => setOpenAccessOnly(checked as boolean)}
-                                                />
-                                                <label htmlFor="oa" className="text-sm font-medium leading-none cursor-pointer">
-                                                    Open Access Only
-                                                </label>
-                                            </div>
-
-                                            {/* Clear Filters */}
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="w-full"
-                                                onClick={() => {
-                                                    setYearFrom(2020)
-                                                    setYearTo(new Date().getFullYear())
-                                                    setCitationsMin(0)
-                                                    setOpenAccessOnly(false)
-                                                }}
-                                            >
-                                                Clear Filters
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                            <Button onClick={handleSearch} disabled={isLoading} className="shadow-lg shadow-primary/20">
-                                {isLoading ? "Searching..." : "Search"}
-                            </Button>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-4 text-sm mt-1">
-                                <span className="text-muted-foreground font-medium">Sources:</span>
-                                <div className="flex flex-wrap items-center gap-3">
-                                    {/* FREE Sources */}
-                                    <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
-                                        <span className="text-[10px] font-bold text-green-600 dark:text-green-400">FREE</span>
-                                        {[
-                                            { id: "arxiv", label: "arXiv" },
-                                            { id: "crossref", label: "CrossRef" },
-                                            { id: "pubmed", label: "PubMed" },
-                                            { id: "semantic_scholar", label: "Semantic Scholar" }
-                                        ].map(source => (
-                                            <div key={source.id} className="flex items-center space-x-1.5">
-                                                <Checkbox
-                                                    id={source.id}
-                                                    checked={sources.includes(source.id)}
-                                                    onCheckedChange={(checked) => {
-                                                        if (checked) setSources([...sources, source.id])
-                                                        else setSources(sources.filter(s => s !== source.id))
-                                                    }}
-                                                />
-                                                <label htmlFor={source.id} className="text-xs font-medium cursor-pointer">{source.label}</label>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* PAID Source */}
-                                    <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
-                                        <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">PAID</span>
-                                        <div className="flex items-center space-x-1.5">
-                                            <Checkbox
-                                                id="openalex"
-                                                checked={sources.includes("openalex")}
-                                                onCheckedChange={(checked) => {
-                                                    if (checked) setSources([...sources, "openalex"])
-                                                    else setSources(sources.filter(s => s !== "openalex"))
-                                                }}
-                                            />
-                                            <label htmlFor="openalex" className="text-xs font-medium cursor-pointer">OpenAlex</label>
-                                        </div>
-                                        <span className="text-[10px] text-muted-foreground">
-                                            ({openAlexQuota.limit - openAlexQuota.used}/{openAlexQuota.limit} left)
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {(user?.tier === 'professor' || user?.tier === 'researcher') && (
-                                <div className="flex flex-col gap-2 border-t pt-2 mt-1">
-                                    <div className="flex items-center gap-4 text-sm pt-1">
-                                        <span className="text-primary font-bold text-[10px] uppercase tracking-tighter shrink-0 flex items-center gap-1">
-                                            Premium Research Web:
-                                            <Badge variant="secondary" className="bg-yellow-500 text-black text-[8px] h-3 px-1 ml-1 truncate">PROFESSOR+</Badge>
-                                        </span>
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                                            {[
-                                                { id: "google_scholar", label: "Google Scholar" },
-                                                { id: "researchgate", label: "ResearchGate" },
-                                                { id: "pubmed", label: "PubMed" },
-                                                { id: "ieee_xplore", label: "IEEE Xplore" },
-                                                { id: "academia_edu", label: "Academia.edu" },
-                                                ...(user?.tier === 'researcher' ? [
-                                                    { id: "jstor", label: "JSTOR" },
-                                                    { id: "ssrn", label: "SSRN" },
-                                                    { id: "nature_science", label: "Nature/Science" },
-                                                    { id: "doaj", label: "DOAJ" },
-                                                    { id: "eric", label: "ERIC" }
-                                                ] : [])
-                                            ].map((s) => (
-                                                <div key={s.id} className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={s.id}
-                                                        checked={sources.includes(s.id)}
-                                                        onCheckedChange={(checked) => {
-                                                            if (checked) setSources([...sources, s.id])
-                                                            else setSources(sources.filter(src => src !== s.id))
-                                                        }}
-                                                    />
-                                                    <label htmlFor={s.id} className="text-[11px] font-medium cursor-pointer whitespace-nowrap">{s.label}</label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Tier Badge for result limit */}
-                            <div className="flex items-center gap-2 mt-2">
-                                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold py-0 h-5">
-                                    {user?.tier === 'researcher' ? '200' : user?.tier === 'professor' ? '50' : '10'} OPENALEX RESULTS MAX ({user?.tier || 'Student'} Tier)
-                                </Badge>
-                                <span className="text-[10px] text-muted-foreground italic">Arxiv, Semantic Scholar & ACM are unlimited. Premium Search at 100 queries/source.</span>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Results Section */}
-            {results.length > 0 ? (
-                <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <h3 className="text-xl font-semibold">Search Results</h3>
-                            <p className="text-xs text-muted-foreground">Found {results.length} papers for "{lastQuery}"</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center border rounded-md p-0.5 bg-muted/20">
-                                <Button
-                                    variant={viewMode === "grid" ? "secondary" : "ghost"}
-                                    size="icon"
-                                    className="h-7 w-7 rounded-sm"
-                                    onClick={() => setViewMode("grid")}
-                                >
-                                    <LayoutGrid className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant={viewMode === "list" ? "secondary" : "ghost"}
-                                    size="icon"
-                                    className="h-7 w-7 rounded-sm"
-                                    onClick={() => setViewMode("list")}
-                                >
-                                    <List className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-xs h-8"
-                                onClick={selectAll}
-                            >
-                                {selectedPaperIds.size === results.length ? "Deselect All" : "Select All"}
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className={cn(
-                        "grid gap-6 animate-in fade-in duration-500",
-                        viewMode === "grid" ? "md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-                    )}>
-                        {results.map((paper) => (
-                            <Card
-                                key={paper.id}
-                                className={cn(
-                                    "group cursor-pointer hover:border-primary/50 transition-all flex flex-col relative overflow-hidden",
-                                    selectedPaperIds.has(paper.id) && "border-primary bg-primary/5 shadow-md scale-[1.01]"
-                                )}
-                                onClick={() => setSelectedPaper(paper)}
-                            >
-                                <div
-                                    className="absolute top-3 left-3 z-10"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        togglePaperSelection(paper.id)
-                                    }}
-                                >
-                                    <div className={cn(
-                                        "w-5 h-5 rounded-md border flex items-center justify-center transition-all",
-                                        selectedPaperIds.has(paper.id)
-                                            ? "bg-primary border-primary shadow-sm"
-                                            : "bg-background border-muted-foreground/30 group-hover:border-primary/50 group-hover:bg-primary/5"
-                                    )}>
-                                        {selectedPaperIds.has(paper.id) && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                                    </div>
-                                </div>
-
-                                <CardHeader className="p-4 pb-2 pt-10">
-                                    <div className="flex justify-between items-start gap-2">
-                                        <CardTitle className="text-base font-bold group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                                            {paper.title}
-                                        </CardTitle>
-                                        <Badge variant="secondary" className="shrink-0 flex gap-1 p-1 h-5 px-1.5">
-                                            <Quote className="w-2 h-2" />
-                                            <span className="text-[10px]">{paper.citations}</span>
-                                        </Badge>
-                                    </div>
-                                    <CardDescription className="line-clamp-1 text-[11px] pt-1">
-                                        {paper.authors.join(", ")} • {paper.year || "n/a"}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
-                                    {paper.abstract && (
-                                        <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2rem] border-l-2 pl-3 border-primary/20 bg-muted/5 py-1 mb-4">
-                                            {paper.abstract}
-                                        </p>
-                                    )}
-                                    <div className="flex items-center gap-2 mt-auto pt-2">
-                                        <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-tighter opacity-70">
-                                            {paper.source}
-                                        </Badge>
-                                        {paper.open_access && (
-                                            <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 text-[9px] border-emerald-500/30">
-                                                Open Access
-                                            </Badge>
-                                        )}
-                                        <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-primary text-[11px] font-bold">
-                                            Preview <ChevronRight className="w-3 h-3 ml-0.5" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            ) : (
-                <div className="space-y-8">
-                    {searchHistory.length > 0 ? (
-                        <div className="max-w-2xl mx-auto">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">Recent Searches</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {searchHistory.map((h, i) => (
-                                    <div
-                                        key={i}
-                                        className="bg-muted/40 hover:bg-primary/10 border hover:border-primary/30 transition-all px-4 py-2 rounded-2xl cursor-pointer flex items-center gap-3 group"
-                                        onClick={() => setQuery(h)}
-                                    >
-                                        <History className="w-3.5 h-3.5 text-primary opacity-50 group-hover:opacity-100" />
-                                        <span className="text-sm font-medium">{h}</span>
-                                        <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-primary" />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="text-center py-24 bg-muted/10 border border-dashed rounded-[3rem] max-w-4xl mx-auto">
-                            <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl border border-primary/5">
-                                <SearchIcon className="h-10 w-10 text-primary opacity-20" />
-                            </div>
-                            <h3 className="text-2xl font-bold tracking-tight">Intelligence-Powered Literature Research</h3>
-                            <p className="text-muted-foreground max-w-[500px] mx-auto mt-3 text-sm leading-relaxed">
-                                Our AI connects to millions of papers via OpenAlex, arXiv, Semantic Scholar, and ACM to bring you high-impact research papers instantly.
-                            </p>
-                            <div className="flex flex-wrap justify-center gap-3 mt-10">
-                                <span className="text-xs text-muted-foreground w-full mb-2">Try searching for:</span>
-                                <Badge variant="outline" className="px-4 py-1.5 rounded-full cursor-pointer hover:bg-primary/5" onClick={() => setQuery("Transformer Architectures")}>Transformer Architectures</Badge>
-                                <Badge variant="outline" className="px-4 py-1.5 rounded-full cursor-pointer hover:bg-primary/5" onClick={() => setQuery("Climate Resilience")}>Climate Resilience</Badge>
-                                <Badge variant="outline" className="px-4 py-1.5 rounded-full cursor-pointer hover:bg-primary/5" onClick={() => setQuery("Graphene Supercapacitors")}>Graphene Supercapacitors</Badge>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Paper Preview Dialog */}
-            <Dialog open={!!selectedPaper} onOpenChange={() => setSelectedPaper(null)}>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border-2">
-                    {selectedPaper && (
-                        <div className="space-y-6">
-                            <DialogHeader>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-                                        {selectedPaper.source.toUpperCase()}
-                                    </Badge>
-                                    <Badge className="bg-yellow-500 text-black border-none">
-                                        {selectedPaper.citations} CITATIONS
-                                    </Badge>
-                                </div>
-                                <DialogTitle className="text-2xl leading-tight font-black tracking-tight">
-                                    {selectedPaper.title}
-                                </DialogTitle>
-                                <DialogDescription className="text-base mt-2 font-medium text-foreground/80">
-                                    {selectedPaper.authors.join(", ")} • {selectedPaper.year}
-                                </DialogDescription>
-                            </DialogHeader>
-
-                            <div className="space-y-3">
-                                <h4 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-primary" />
-                                    Abstract
-                                </h4>
-                                {selectedPaper.abstract ? (
-                                    <p className="text-sm leading-relaxed text-muted-foreground bg-muted/30 p-6 rounded-2xl border italic">
-                                        {selectedPaper.abstract}
-                                    </p>
-                                ) : (
-                                    <div className="text-sm leading-relaxed text-muted-foreground/60 bg-muted/20 p-6 rounded-2xl border border-dashed flex items-center gap-3">
-                                        <FileText className="w-5 h-5 text-muted-foreground/40" />
-                                        <span className="italic">
-                                            Abstract not available for this paper from {selectedPaper.source || 'this source'}.
-                                            Try viewing the full source for more details.
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                                {selectedPaper.url && (
-                                    <Button asChild variant="default" className="flex-1 rounded-xl h-12 font-bold shadow-lg shadow-primary/20">
-                                        <a href={selectedPaper.url} target="_blank" rel="noopener noreferrer">
-                                            <ExternalLink className="w-4 h-4 mr-2" />
-                                            View Full Source
-                                        </a>
-                                    </Button>
-                                )}
-                                <Button
-                                    variant="secondary"
-                                    className="flex-1 rounded-xl h-12 font-bold"
-                                    onClick={() => {
-                                        fetchProjects()
-                                        setIsProjectDialogOpen(true)
-                                    }}
-                                >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add to Project
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
-
-            {/* Floating Bulk Actions Bar */}
-            {selectedPaperIds.size > 0 && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-bottom-6 duration-500">
-                    <div className="bg-foreground text-background px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-8 border-4 border-white/5 backdrop-blur-xl">
-                        <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                                <span className="text-lg font-black leading-none">{selectedPaperIds.size}</span>
-                                <span className="text-xs font-bold leading-none uppercase tracking-tighter opacity-50">Selected</span>
-                            </div>
-                        </div>
-
-                        <div className="w-[1px] h-8 bg-white/10" />
-
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-10 text-xs font-bold hover:bg-white/10 text-white gap-2 px-4 rounded-xl"
-                                onClick={() => {
-                                    fetchProjects()
-                                    setIsProjectDialogOpen(true)
-                                }}
-                            >
-                                <Plus className="w-4 h-4" />
-                                ADD TO PROJECT
-                            </Button>
-
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-10 text-xs font-bold hover:bg-white/10 text-white gap-2 px-4 rounded-xl"
-                                onClick={() => toast.info("Bulk citation export is coming soon for Professor+ tiers.")}
-                            >
-                                <Download className="w-4 h-4" />
-                                EXPORT CITATIONS
-                                <Badge variant="secondary" className="bg-yellow-500 text-black text-[9px] h-4 px-1 border-none ml-1 font-bold">PRO</Badge>
-                            </Button>
-
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-10 w-10 hover:bg-destructive hover:text-white text-white/50 rounded-xl"
-                                onClick={() => setSelectedPaperIds(new Set())}
-                            >
-                                <Plus className="w-5 h-5 rotate-45" />
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

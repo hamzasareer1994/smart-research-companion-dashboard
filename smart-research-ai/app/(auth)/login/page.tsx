@@ -19,8 +19,9 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { loginSchema, LoginValues } from "@/lib/schema"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
+import Cookies from "js-cookie"
 import { authService } from "@/services/auth"
 
 import { useUserStore, User, UserTier } from "@/lib/store"
@@ -28,7 +29,10 @@ import { useUserStore, User, UserTier } from "@/lib/store"
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
+    const searchParams = useSearchParams()
     const setUser = useUserStore((state) => state.setUser)
+
+    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
 
     const form = useForm<LoginValues>({
         resolver: zodResolver(loginSchema),
@@ -43,6 +47,14 @@ export default function LoginPage() {
         try {
             const response = await authService.login(data)
 
+            // Set cookie for middleware
+            Cookies.set("auth-token", response.access_token, { 
+                expires: 7, // 7 days
+                path: "/",
+                sameSite: "strict",
+                secure: process.env.NODE_ENV === "production"
+            })
+
             // Initialize Store
             const user: User = {
                 id: response.user_id,
@@ -56,7 +68,7 @@ export default function LoginPage() {
             toast.success("Login successful", {
                 description: `Welcome back, ${response.email.split('@')[0]}!`,
             })
-            router.push("/dashboard")
+            router.push(callbackUrl)
         } catch (error) {
             toast.error("Login failed", {
                 description: error instanceof Error ? error.message : "Something went wrong",

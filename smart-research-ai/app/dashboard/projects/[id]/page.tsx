@@ -1,64 +1,57 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+    ArrowLeft, 
+    FileText, 
+    LayoutGrid, 
+    Table as TableIcon, 
+    BarChart3, 
+    PenLine, 
+    MoreVertical, 
+    Share2, 
+    Download, 
+    Sparkles, 
+    Plus, 
+    MessageSquare, 
+    Layers,
+    ChevronRight,
+    Search,
+    Filter,
+    X,
+    Trash2,
+    BookOpen,
+    Quote,
+    ExternalLink
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+    DropdownMenu, 
+    DropdownMenuContent, 
+    DropdownMenuItem, 
+    DropdownMenuTrigger, 
+    DropdownMenuSeparator 
+} from "@/components/ui/dropdown-menu"
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogDescription
 } from "@/components/ui/dialog"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger
-} from "@/components/ui/tabs"
-import {
-    ArrowLeft,
-    FileText,
-    LayoutGrid,
-    Table as TableIcon,
-    BarChart3,
-    PenLine,
-    MoreVertical,
-    Share2,
-    Download,
-    Sparkles,
-    LayoutDashboard as GalleryIcon,
-    Lock as LockIcon,
-    Plus,
-    MessageSquare,
-    Layers
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { KanbanBoard } from "@/components/projects/kanban-board"
-import { PaperContextMenu } from "@/components/projects/paper-context-menu"
 import { ChatSheet } from "@/components/chat/chat-sheet"
 import { AIInsights } from "@/components/projects/ai-insights"
-import { projectService, ProjectResponse } from "@/services/project"
-import { toast } from "sonner"
-import Link from "next/link"
-import { PaperTableView } from "@/components/projects/paper-table-view"
-import { PaperGalleryView } from "@/components/projects/paper-gallery-view"
-import { ProjectStatisticsCard } from "@/components/projects/project-stats"
-import { SmartSuggestionsPanel } from "@/components/projects/smart-suggestions"
-import { ExportModal } from "@/components/projects/export-modal"
+import { projectService } from "@/services/project"
 import { aiService } from "@/services/ai"
 import { useUserStore } from "@/lib/store"
-import { UpgradeModal } from "@/components/upgrade-modal"
-import { DeleteProjectDialog } from "@/components/projects/delete-project-dialog"
-import { DeletePapersModal } from "@/components/projects/delete-papers-modal"
+import { toast } from "sonner"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 export default function ProjectDetailPage() {
     const params = useParams()
@@ -76,8 +69,13 @@ export default function ProjectDetailPage() {
     })
     const [notes, setNotes] = useState("")
     const [isSavingNotes, setIsSavingNotes] = useState(false)
+    const [viewMode, setViewMode] = useState<"kanban" | "table" | "gallery">("kanban")
+    const [isChatOpen, setIsChatOpen] = useState(false)
     const [selectedInsights, setSelectedInsights] = useState<any>(null)
     const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false)
+
+    const { user } = useUserStore()
+    const userTier = user?.tier || "student"
 
     useEffect(() => {
         if (projectId) {
@@ -87,502 +85,327 @@ export default function ProjectDetailPage() {
     }, [projectId])
 
     const fetchProjectDetails = async () => {
-        // Only show full loading if we don't have project data yet
-        if (!project) {
-            setIsLoading(true)
-        }
-
+        setIsLoading(true)
         try {
             const data = await projectService.getProjectDetails(projectId)
             setProject(data)
             setNotes(data.notes || "")
         } catch (error: any) {
-            toast.error("Error loading project details")
+            toast.error("Project access denied")
             router.push("/dashboard/projects")
         } finally {
             setIsLoading(false)
         }
     }
 
-    const handleRefresh = async () => {
-        await Promise.all([
-            fetchProjectDetails(),
-            fetchProjectAnalytics()
-        ])
-    }
-
     const fetchProjectAnalytics = async () => {
         try {
             const response = await fetch(`/api/v1/projects/${projectId}/analytics`, {
-                headers: {
-                    "Authorization": `Bearer ${JSON.parse(localStorage.getItem("smart-research-storage") || "{}")?.state?.user?.access_token}`
-                }
+                headers: { "Authorization": `Bearer ${useUserStore.getState().user?.access_token}` }
             })
             if (response.ok) {
                 const data = await response.json()
                 setStats(data)
             }
-        } catch (error) {
-            console.error("Failed to fetch analytics")
-        }
+        } catch (error) { console.error(error) }
     }
 
-    const [viewMode, setViewMode] = useState<"kanban" | "table" | "gallery">("kanban")
-    const [isChatOpen, setIsChatOpen] = useState(false)
-    const [isExportModalOpen, setIsExportModalOpen] = useState(false)
-    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
-    const [isDeletePapersOpen, setIsDeletePapersOpen] = useState(false)
-    const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false)
-    const [chatContext, setChatContext] = useState({ id: "", title: "" })
-    const { user } = useUserStore()
-    const userTier = user?.tier || "student"
-
-    const papers = project?.papers || []
-
     const handleAction = (action: string, paperId: string) => {
-        const paper = papers.find((p: any) => p.id === paperId)
+        const paper = project?.papers?.find((p: any) => p.id === paperId)
         if (!paper) return
 
         switch (action) {
             case "chat":
-                setChatContext({ id: paper.id, title: paper.title })
                 setIsChatOpen(true)
                 break
             case "summarize":
-                const runSummarize = async () => {
-                    const id = toast.loading(`Analyzing "${paper.title}"...`)
-                    try {
-                        const summary = await aiService.generateSummary(paper.title, paper.abstract || "No abstract available.")
-                        toast.success("Summary generated!", { id })
-                        // In a real app, we might open a modal here
-                    } catch (error: any) {
-                        toast.error(error.message || "Failed to generate summary", { id })
-                    }
-                }
-                runSummarize()
-                break
-            case "insights":
-                const runInsights = async () => {
-                    const id = toast.loading(`Extracting insights from "${paper.title}"...`)
-                    try {
-                        const insights = await aiService.extractInsights(paper.abstract || "No abstract available.")
-                        toast.success("Insights extracted!", {
-                            id,
-                            action: {
-                                label: "View Insights",
-                                onClick: () => {
-                                    setSelectedInsights({
-                                        title: paper.title,
-                                        content: insights
-                                    })
-                                    setIsInsightsModalOpen(true)
-                                }
-                            }
-                        })
-                    } catch (error: any) {
-                        toast.error(error.message || "Failed to extract insights", { id })
-                    }
-                }
-                runInsights()
-                break
-            case "find_similar":
-                toast.info(`Looking for papers similar to: ${paper.title}`)
-                router.push(`/dashboard/search?q=${encodeURIComponent(paper.title)}&similar=${paper.id}`)
+                const id = toast.loading("Synthesizing paper...")
+                aiService.generateSummary(paper.title, paper.abstract || "")
+                    .then(s => {
+                        toast.success("Synthesis complete", { id })
+                        setSelectedInsights({ title: paper.title, content: s })
+                        setIsInsightsModalOpen(true)
+                    })
+                    .catch(() => toast.error("Synthesis failed", { id }))
                 break
             case "view_original":
                 const url = paper.storage_url || paper.pdf_url || paper.url
-                if (url) {
-                    window.open(url, "_blank")
-                } else {
-                    toast.error("No source URL available for this paper")
-                }
+                if (url) window.open(url, "_blank")
                 break
             case "remove":
-                const runRemove = async () => {
-                    const id = toast.loading(`Removing "${paper.title}"...`)
-                    try {
-                        await projectService.removePaper(projectId, paper.id)
-                        await fetchProjectDetails()
-                        toast.success("Paper removed from project", { id })
-                    } catch (error: any) {
-                        toast.error(error.message || "Failed to remove paper", { id })
-                    }
-                }
-                runRemove()
+                if (!confirm(`Remove "${paper.title}" from project?`)) return
+                projectService.removePaper(projectId, paper.id).then(() => {
+                    toast.success("Paper removed")
+                    fetchProjectDetails()
+                })
                 break
-            default:
-                console.log("Action:", action, "on paper:", paperId)
         }
     }
 
-    const handleDeleteProject = async () => {
-        if (!project) return
+    if (isLoading) return (
+        <div className="h-full flex flex-col items-center justify-center py-20 pointer-events-none">
+            <div className="animate-spin w-10 h-10 border-4 border-accent border-t-transparent rounded-full mb-4" />
+            <p className="text-ink3 font-serif italic text-lg tracking-wide">Initializing workspace...</p>
+        </div>
+    )
 
-        try {
-            await projectService.deleteProject(projectId)
-            router.push('/dashboard/projects')
-        } catch (error) {
-            console.error('Failed to delete project:', error)
-        }
-    }
-
-    const handleDeletePapers = async (paperIds: string[]) => {
-        if (paperIds.length === 0) return
-
-        try {
-            // Delete each paper from the project
-            await Promise.all(
-                paperIds.map(paperId =>
-                    projectService.removePaper(projectId, paperId)
-                )
-            )
-
-            // Refresh the papers list
-            await fetchProjectDetails()
-            setIsDeletePapersOpen(false)
-        } catch (error) {
-            console.error('Failed to delete papers:', error)
-        }
-    }
-
-    const handleSaveNotes = async () => {
-        setIsSavingNotes(true)
-        const toastId = toast.loading("Saving notes...")
-        try {
-            await projectService.updateProject(projectId, { notes })
-            toast.success("Notes saved successfully", { id: toastId })
-            // Refresh local project data
-            setProject({ ...project, notes })
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save notes", { id: toastId })
-        } finally {
-            setIsSavingNotes(false)
-        }
-    }
-
-    if (isLoading) return <div className="p-8">Loading project details...</div>
     if (!project) return null
 
-
     return (
-        <div className="space-y-6">
-            {/* Project Header */}
-            <div className="flex items-center gap-4 mb-2">
-                <Button variant="ghost" size="sm" asChild>
-                    <Link href="/dashboard/projects">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back
-                    </Link>
-                </Button>
-            </div>
+        <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10 animate-fade-up">
+            {/* Header Area */}
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-2 text-ink4 font-bold text-[0.7rem] uppercase tracking-widest">
+                    <Link href="/dashboard/projects" className="hover:text-accent transition-colors">Projects</Link>
+                    <ChevronRight size={12} />
+                    <span className="text-ink">Workspace Detail</span>
+                </div>
 
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-3xl font-bold tracking-tight">{project.name}</h2>
-                        <Badge variant="outline" className="h-6 px-2 text-xs font-mono">
-                            {stats.totalPapers || project.papers?.length || 0} / {userTier === "student" ? "10" : userTier === "professor" ? "20" : "∞"} Papers
-                        </Badge>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-3xl md:text-5xl font-serif text-ink">{project.name}</h1>
+                            <Badge className="bg-gold-bg text-gold border-gold/10 font-black h-6 px-2">{project.papers?.length || 0} PAPERS</Badge>
+                        </div>
+                        <p className="text-ink3 text-[1rem] max-w-2xl italic leading-relaxed">
+                            {project.description || "Active research workspace for specialized knowledge synthesis."}
+                        </p>
                     </div>
-                    <p className="text-muted-foreground mt-1">
-                        {project.description || "Research workspace overview and paper management."}
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setIsExportModalOpen(true)}>
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                            if (userTier !== "researcher") {
-                                setIsInviteModalOpen(true)
-                            } else {
-                                // Actual invite/share logic for researchers
-                                toast.info("Invite collaborators feature coming soon")
-                            }
-                        }}
-                    >
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Invite
-                    </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-5 w-5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setIsDeletePapersOpen(true)}>
-                                Delete Papers
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={() => setIsDeleteProjectOpen(true)}
-                                className="text-destructive"
-                            >
-                                Delete Project
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" className="rounded-full h-11 border-border px-6 hover:bg-bg2 transition-all flex items-center gap-2">
+                            <Download size={18} /> Export Workspace
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full border border-border"><MoreVertical size={20} /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="rounded-2xl border-border shadow-2xl p-2">
+                                <DropdownMenuItem className="rounded-xl py-3 px-4 focus:bg-accent-light text-ink font-bold flex items-center gap-2">
+                                    <Settings className="w-4 h-4" /> Project Settings
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator className="my-1" />
+                                <DropdownMenuItem className="rounded-xl py-3 px-4 focus:bg-red text-ink4 hover:text-white flex items-center gap-2">
+                                    <Trash2 className="w-4 h-4" /> Delete Project
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             </div>
 
-            {/* Delete Papers Modal */}
-            <DeletePapersModal
-                isOpen={isDeletePapersOpen}
-                onOpenChange={setIsDeletePapersOpen}
-                papers={papers}
-                onDelete={async (paperIds) => {
-                    for (const paperId of paperIds) {
-                        await projectService.removePaper(projectId, paperId)
-                    }
-                    await fetchProjectDetails()
-                    toast.success(`Deleted ${paperIds.length} paper(s)`)
-                }}
-            />
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                    { label: "Cit. Velocity", val: stats.citationVelocity.toFixed(1), color: "accent", icon: BarChart3 },
+                    { label: "Top Researcher", val: stats.topAuthor.split(",")[0], color: "teal", icon: User },
+                    { label: "Avg Pub Year", val: stats.avgYear || "-", color: "gold", icon: Calendar },
+                    { label: "Total Ref. Count", val: stats.totalCitations, color: "ink", icon: Quote },
+                ].map((s, i) => (
+                    <div key={i} className="bg-surface border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3 mb-2 text-ink4">
+                            <s.icon size={16} className={cn("text-" + s.color)} />
+                            <span className="text-[0.65rem] font-black uppercase tracking-widest">{s.label}</span>
+                        </div>
+                        <div className="text-2xl font-serif text-ink truncate">{s.val}</div>
+                    </div>
+                ))}
+            </div>
 
-            <aside className="space-y-6">
-                <ProjectStatisticsCard stats={stats} />
-                <SmartSuggestionsPanel
-                    projectId={projectId}
-                    papers={papers}
-                    projectTitle={project.name}
-                    onPaperAdded={handleRefresh}
-                />
-            </aside>
-
-            {/* Main Tabs */}
+            {/* Tabbed Interaction Area */}
             <Tabs defaultValue="papers" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 max-w-[400px]">
-                    <TabsTrigger value="papers">Papers</TabsTrigger>
-                    <TabsTrigger value="insights">Insights</TabsTrigger>
-                    <TabsTrigger value="notes">Notes</TabsTrigger>
-                    <TabsTrigger value="network">Network</TabsTrigger>
+                <TabsList className="h-auto p-0 bg-transparent gap-8 border-b border-border rounded-none flex justify-start mb-8">
+                    {["papers", "insights", "notes", "network"].map(tab => (
+                        <TabsTrigger 
+                            key={tab} 
+                            value={tab} 
+                            className="bg-transparent border-none p-0 pb-4 h-auto data-[state=active]:bg-transparent data-[state=active]:text-accent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none shadow-none text-[0.85rem] font-bold uppercase tracking-widest text-ink4"
+                        >
+                            {tab}
+                        </TabsTrigger>
+                    ))}
                 </TabsList>
 
-                <TabsContent value="papers" className="mt-6 space-y-4">
-                    <div className="flex justify-between items-center bg-muted/30 p-2 rounded-lg border border-dashed">
-                        <div className="flex gap-2">
-                            <Button
-                                variant={viewMode === "kanban" ? "secondary" : "ghost"}
-                                size="sm"
-                                className={viewMode === "kanban" ? "bg-background shadow-sm" : ""}
-                                onClick={() => setViewMode("kanban")}
-                            >
-                                <LayoutGrid className="h-4 w-4 mr-2" />
-                                Kanban
+                <TabsContent value="papers" className="mt-0 space-y-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 bg-bg2 p-1.5 rounded-2xl border border-border shadow-inner">
+                            <Button variant={viewMode === "kanban" ? "surface" : "ghost"} size="sm" onClick={() => setViewMode("kanban")} className="h-9 px-4 rounded-xl font-bold flex items-center gap-2"><LayoutGrid size={16} /> Kanban</Button>
+                            <Button variant={viewMode === "table" ? "surface" : "ghost"} size="sm" onClick={() => setViewMode("table")} className="h-9 px-4 rounded-xl font-bold flex items-center gap-2"><TableIcon size={16} /> Table</Button>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Button variant="outline" className="rounded-full shadow-sm flex items-center gap-2 border-border" asChild>
+                                <Link href="/dashboard/search"><Search size={16} /> Expand Search</Link>
                             </Button>
-                            <Button
-                                variant={viewMode === "table" ? "secondary" : "ghost"}
-                                size="sm"
-                                className={viewMode === "table" ? "bg-background shadow-sm" : ""}
-                                onClick={() => setViewMode("table")}
-                            >
-                                <TableIcon className="h-4 w-4 mr-2" />
-                                Table
-                            </Button>
-                            <Button
-                                variant={viewMode === "gallery" ? "secondary" : "ghost"}
-                                size="sm"
-                                className={viewMode === "gallery" ? "bg-background shadow-sm" : ""}
-                                onClick={() => setViewMode("gallery")}
-                            >
-                                <GalleryIcon className="h-4 w-4 mr-2" />
-                                Gallery
+                            <Button className="rounded-full bg-accent text-white font-bold h-11 px-8 shadow-lg shadow-accent/20" asChild>
+                                <Link href="/dashboard/upload"><Plus size={18} className="mr-2" /> Add Research</Link>
                             </Button>
                         </div>
-                        <Button size="sm" asChild>
-                            <Link href="/dashboard/search">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Papers
-                            </Link>
-                        </Button>
                     </div>
 
-                    {papers.length === 0 ? (
-                        <Card className="flex flex-col items-center justify-center p-20 text-center border-dashed bg-muted/5">
-                            <FileText className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
-                            <h3 className="text-lg font-semibold">No papers in this project</h3>
-                            <p className="text-sm text-muted-foreground mt-2 max-w-[300px]">
-                                Start by searching for papers or uploading PDFs directly to this project.
-                            </p>
-                            <div className="flex gap-3 mt-8">
-                                <Button variant="outline" size="sm" asChild>
-                                    <Link href="/dashboard/search">Search Papers</Link>
-                                </Button>
-                                <Button size="sm" asChild>
-                                    <Link href="/dashboard/upload">Upload PDF</Link>
-                                </Button>
+                    <div className="min-h-[500px]">
+                        {project.papers?.length > 0 ? (
+                            <div className="animate-fade-up">
+                                {viewMode === "kanban" ? (
+                                    <KanbanBoard papers={project.papers} onStatusChange={() => {}} onAction={handleAction} />
+                                ) : (
+                                    <div className="bg-surface border border-border rounded-3xl overflow-hidden shadow-sm">
+                                        <div className="p-8 border-b border-border font-serif italic text-ink/50 text-center">Visual list view optimized for metadata analysis.</div>
+                                        {/* Simplified list for now as PaperTableView is externalized */}
+                                        <div className="divide-y divide-border">
+                                            {project.papers.map((p: any) => (
+                                                <div key={p.id} className="p-6 flex items-center justify-between hover:bg-bg2 transition-colors group">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-accent-light text-accent rounded-xl flex items-center justify-center shrink-0"><BookOpen size={20} /></div>
+                                                        <div>
+                                                            <h4 className="font-bold text-ink underline-offset-4 group-hover:underline cursor-pointer">{p.title}</h4>
+                                                            <p className="text-[0.7rem] text-ink4 font-bold uppercase tracking-widest mt-1">{p.authors?.[0]} • {p.year}</p>
+                                                        </div>
+                                                    </div>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleAction("chat", p.id)} className="rounded-full text-accent"><MessageSquare size={18} /></Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        </Card>
-                    ) : (viewMode === "kanban" ? (
-                        <KanbanBoard
-                            papers={papers}
-                            onStatusChange={(id, status) => console.log(id, status)}
-                            onAction={handleAction}
-                        />
-                    ) : viewMode === "gallery" ? (
-                        <PaperGalleryView
-                            papers={papers}
-                            onAction={handleAction}
-                        />
-                    ) : (
-                        <PaperTableView
-                            papers={papers}
-                            onAction={handleAction}
-                        />
-                    ))}
-
-                    <div className="pt-8 border-t border-dashed">
-                        {/* Suggestions now handled in top aside */}
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-32 space-y-8 bg-muted/10 border-2 border-dashed border-border rounded-[3rem]">
+                                <div className="w-20 h-20 bg-surface border border-border rounded-2xl shadow-xl flex items-center justify-center mx-auto text-ink4"><FileText size={32} /></div>
+                                <div className="text-center">
+                                    <h3 className="text-2xl font-serif text-ink">Library Empty</h3>
+                                    <p className="text-ink3 text-[0.9rem] max-w-sm mt-2 mx-auto">No papers have been indexed for this project yet. Start by expanding your search or uploading papers.</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <Button variant="outline" className="rounded-full px-8 h-12 font-bold" asChild><Link href="/dashboard/search">Search Papers</Link></Button>
+                                    <Button className="bg-gold text-white rounded-full px-8 h-12 font-bold" asChild><Link href="/dashboard/upload">Upload PDF</Link></Button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </TabsContent>
 
-                <TabsContent value="insights" className="mt-6 space-y-6">
-                    <AIInsights projectId={projectId} papers={papers} projectTitle={project.name} />
+                <TabsContent value="insights" className="mt-0 space-y-8">
+                    <AIInsights projectId={projectId} papers={project.papers} projectTitle={project.name} />
                 </TabsContent>
 
-                <TabsContent value="notes" className="mt-6">
-                    <Card className="min-h-[400px] flex flex-col">
-                        <CardHeader className="border-b">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="flex items-center text-lg">
-                                    <PenLine className="h-5 w-5 mr-3 text-primary" />
-                                    Research Notes
-                                </CardTitle>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={handleSaveNotes}
-                                    disabled={isSavingNotes || notes === (project?.notes || "")}
-                                >
-                                    {isSavingNotes ? "Saving..." : "Save Notes"}
-                                </Button>
+                <TabsContent value="notes" className="mt-0">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="bg-surface border border-border rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col min-h-[600px]">
+                                <div className="p-8 border-b border-border flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-accent-light text-accent flex items-center justify-center rounded-xl"><PenLine size={20} /></div>
+                                        <h3 className="text-xl font-serif text-ink">Research Chronicle</h3>
+                                    </div>
+                                    <Button 
+                                        onClick={() => {
+                                            setIsSavingNotes(true)
+                                            projectService.updateProject(projectId, { notes })
+                                                .then(() => toast.success("Chronicle Recorded"))
+                                                .finally(() => setIsSavingNotes(false))
+                                        }}
+                                        disabled={isSavingNotes}
+                                        className="rounded-full bg-ink text-white font-bold px-6"
+                                    >
+                                        {isSavingNotes ? "Recording..." : "Save Chronicles"}
+                                    </Button>
+                                </div>
+                                <textarea 
+                                    className="flex-1 p-10 bg-transparent border-none focus:ring-0 text-[1.1rem] leading-[1.8] font-serif italic text-ink placeholder:text-ink4/30 resize-none outline-none"
+                                    placeholder="Begin drafting your synthesis, theoretical frameworks, or initial observations here..."
+                                    value={notes}
+                                    onChange={e => setNotes(e.target.value)}
+                                />
                             </div>
-                        </CardHeader>
-                        <textarea
-                            className="flex-1 p-6 bg-transparent outline-none resize-none text-sm leading-relaxed"
-                            placeholder="Start writing your thoughts, research questions, or drafting segments of your paper..."
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                        />
-                    </Card>
+                        </div>
+
+                        <div className="space-y-8">
+                            <div className="bg-gold-bg border border-gold/10 p-8 rounded-3xl shadow-lg relative overflow-hidden">
+                                <Sparkles className="absolute -top-4 -right-4 w-24 h-24 text-gold/5" />
+                                <h4 className="text-[0.7rem] font-black uppercase tracking-[0.2em] text-gold mb-4">AI Copilot Tip</h4>
+                                <p className="text-[0.9rem] text-ink leading-relaxed font-serif italic">
+                                    "Your notes are automatically used to ground my responses when we chat in this project context. Elaborate on your thesis for better precision."
+                                </p>
+                            </div>
+
+                            <div className="bg-surface border border-border p-8 rounded-3xl shadow-sm space-y-6">
+                                <h4 className="text-[0.7rem] font-black uppercase tracking-[0.2em] text-ink4 border-b pb-4">Workspace Index</h4>
+                                <div className="space-y-4">
+                                    {project.papers?.slice(0, 5).map((p: any) => (
+                                        <div key={p.id} className="flex items-center gap-3 group cursor-pointer" onClick={() => handleAction("chat", p.id)}>
+                                            <div className="w-1.5 h-1.5 bg-accent rounded-full group-hover:scale-150 transition-transform" />
+                                            <span className="text-[0.8rem] font-bold text-ink2 truncate group-hover:text-ink transition-colors">{p.title}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </TabsContent>
 
-                <TabsContent value="network" className="mt-6">
-                    <Card className="p-20 text-center border-dashed">
-                        <LayersIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-                        <h3 className="text-lg font-semibold">Citation Network Visualization</h3>
-                        <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-                            Visualize how the papers in your project are connected and discover influential researchers.
-                        </p>
-                        <Badge variant="secondary" className="mt-4">Researcher Feature Only</Badge>
-                    </Card>
+                <TabsContent value="network" className="mt-0">
+                    <div className="py-24 text-center bg-bg2 rounded-[3rem] border border-border border-dashed space-y-8">
+                        <div className="w-24 h-24 bg-surface border border-border rounded-full flex items-center justify-center mx-auto text-ink4"><Layers size={40} /></div>
+                        <div>
+                            <h3 className="text-3xl font-serif text-ink italic leading-tight">Visualizing Knowledge <em className="italic">Networks</em></h3>
+                            <p className="text-ink3 text-[1rem] max-w-sm mx-auto mt-4">Discover citation threads and researcher connections within your indexed papers.</p>
+                        </div>
+                        <Badge className="bg-gold-bg text-gold border-gold/10 font-bold px-4 py-1">PROFESSOR TIER FEATURE</Badge>
+                    </div>
                 </TabsContent>
-            </Tabs >
-
-            <ExportModal
-                projectName={project.name}
-                paperCount={papers.length}
-                isOpen={isExportModalOpen}
-                onOpenChange={setIsExportModalOpen}
-                userTier={userTier}
-            />
-
-
-            {/* Upgrade Modal for Invite Feature */}
-            <UpgradeModal
-                isOpen={isInviteModalOpen}
-                onOpenChange={setIsInviteModalOpen}
-                title="Researcher Only Feature"
-                description="Inviting collaborators to projects is available for Researcher and Professor tiers."
-                requiredTier="researcher"
-                feature="collaboration and team sharing"
-            />
-
-            {/* Global Chat Sheet */}
-            <ChatSheet
-                isOpen={isChatOpen}
-                onOpenChange={setIsChatOpen}
-                contextId={projectId}
-                contextTitle={project.name}
-                papers={papers}
-            />
-
-            {/* Floating Chat Trigger for Project Context */}
-            <Button
-                size="icon"
-                className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-2xl z-50 group hover:scale-105 transition-transform"
-                onClick={() => {
-                    setChatContext({ id: "", title: "" }) // Reset to project context
-                    setIsChatOpen(true)
-                }}
-            >
-                <div className="absolute -top-2 -right-2 bg-purple-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-background animate-bounce">
-                    AI
-                </div>
-                <MessageSquare className="h-6 w-6" />
-                <span className="sr-only">Chat with Assistant</span>
-            </Button>
+            </Tabs>
 
             {/* AI Insights Modal */}
             <Dialog open={isInsightsModalOpen} onOpenChange={setIsInsightsModalOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-purple-500" />
-                            AI Research Insights
-                        </DialogTitle>
-                        <DialogDescription>
-                            Deep analysis for: {selectedInsights?.title}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                            <div className="bg-muted/50 p-6 rounded-xl border leading-relaxed whitespace-pre-wrap">
-                                {selectedInsights?.content}
+                <DialogContent className="max-w-3xl rounded-[2.5rem] border-border p-10 overflow-y-auto max-h-[85vh]">
+                    {selectedInsights && (
+                        <div className="space-y-8 animate-fade-up">
+                            <div className="flex items-start justify-between">
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 bg-accent text-white rounded-lg flex items-center justify-center"><Sparkles size={16} /></div>
+                                        <Badge className="bg-teal-bg text-teal font-black text-[0.6rem] uppercase tracking-widest">Grounded Synthesis</Badge>
+                                    </div>
+                                    <h2 className="text-2xl font-serif text-ink leading-tight">{selectedInsights.title}</h2>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setIsInsightsModalOpen(false)} className="rounded-full"><X size={20} /></Button>
+                            </div>
+
+                            <div className="p-8 bg-bg2/50 rounded-3xl border border-border italic text-ink leading-[1.8] text-[1.05rem] relative">
+                                <Quote size={48} className="absolute -top-4 -left-4 text-gold/10" />
+                                {selectedInsights.content}
+                            </div>
+
+                            <div className="flex gap-4">
+                                <Button className="flex-1 h-12 rounded-xl bg-accent text-white font-bold" onClick={() => { setIsChatOpen(true); setIsInsightsModalOpen(false); }}>
+                                    Launch Deep Reasoning
+                                </Button>
+                                <Button variant="outline" className="flex-1 h-12 rounded-xl border-border font-bold" asChild>
+                                    <a href="#" target="_blank" rel="noopener noreferrer"><ExternalLink size={16} className="mr-2" /> Original Source</a>
+                                </Button>
                             </div>
                         </div>
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                        <Button variant="outline" onClick={() => setIsInsightsModalOpen(false)}>
-                            Close
-                        </Button>
-                        <Button onClick={() => {
-                            setChatContext({ id: "", title: selectedInsights?.title || "Paper" })
-                            setIsChatOpen(true)
-                            setIsInsightsModalOpen(false)
-                        }}>
-                            Discuss with AI
-                        </Button>
-                    </div>
+                    )}
                 </DialogContent>
             </Dialog>
-        </div >
-    )
-}
 
-function LayersIcon({ className }: { className?: string }) {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={className}
-        >
-            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
-            <path d="m2.6 10.33 8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9" />
-            <path d="m2.6 14.33 8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9" />
-            <path d="m2.6 18.33 8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9" />
-        </svg>
+            {/* Global Chat Overlay */}
+            <ChatSheet 
+                isOpen={isChatOpen} 
+                onOpenChange={setIsChatOpen} 
+                contextId={projectId} 
+                contextTitle={project.name} 
+                papers={project.papers} 
+            />
+
+            {/* Floating Quick Prompt */}
+            <button 
+                onClick={() => setIsChatOpen(true)}
+                className="fixed bottom-10 right-10 bg-accent text-white w-16 h-16 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group"
+            >
+                <div className="absolute -top-2 -right-2 bg-gold text-white text-[0.6rem] font-black px-2 py-0.5 rounded-full border-2 border-surface shadow-md">AI</div>
+                <MessageSquare size={28} className="group-hover:rotate-12 transition-transform" />
+            </button>
+        </div>
     )
 }

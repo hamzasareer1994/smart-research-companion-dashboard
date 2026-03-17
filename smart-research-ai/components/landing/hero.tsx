@@ -1,86 +1,79 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
-
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export function HeroSection() {
     return (
-        <section className="relative overflow-hidden pt-32 pb-16 md:pt-48 md:pb-32">
-            {/* Background Gradients */}
-            <div className="pointer-events-none absolute inset-0 -z-10">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] opacity-30 bg-gradient-radial from-primary/50 to-transparent blur-3xl" />
-            </div>
+        <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-[5%] pt-32 pb-20 overflow-hidden">
+            <div className="absolute inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_800px_600px_at_50%_0%,rgba(44,110,173,0.06)_0%,transparent_70%),radial-gradient(ellipse_600px_400px_at_10%_80%,rgba(196,132,42,0.05)_0%,transparent_60%),radial-gradient(ellipse_500px_400px_at_90%_60%,rgba(29,140,114,0.04)_0%,transparent_60%)]" />
+            
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-paper-border bg-paper-mid text-[0.8rem] font-medium text-ink-muted mb-10"
+            >
+                <span className="w-1.5 h-1.5 rounded-full bg-teal flex-shrink-0" />
+                Now in Public Beta — Join 1,200+ researchers
+            </motion.div>
 
-            <div className="container flex flex-col items-center text-center gap-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <Badge variant="secondary" className="rounded-full px-4 py-1 text-sm">
-                        <Sparkles className="mr-2 h-3.5 w-3.5" />
-                        Now with Knowledge Graphs
-                    </Badge>
-                </motion.div>
+            <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.1 }}
+                className="text-6xl md:text-[6.5rem] font-serif font-normal leading-[1.05] tracking-[-0.02em] text-ink max-w-[900px]"
+            >
+                Your entire research workflow,<br /><em className="italic text-accent-bright">supercharged by AI</em>
+            </motion.h1>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                    className="max-w-4xl"
-                >
-                    <h1 className="text-4xl font-extrabold tracking-tight lg:text-7xl">
-                        Research at the <br className="hidden md:block" />
-                        <span className="bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
-                            Speed of Thought
+            <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                className="text-lg md:text-xl font-light leading-[1.7] text-ink-muted max-w-[560px] mt-7"
+            >
+                Upload papers, chat with your library, find contradictions, generate hypotheses, and write faster — all in one platform built for serious researchers.
+            </motion.p>
+
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.3 }}
+                className="flex flex-wrap justify-center items-center gap-4 mt-10"
+            >
+                <Link href="/signup" className="inline-flex items-center justify-center px-8 py-3 rounded-full text-base font-medium transition-all no-underline border-[1.5px] border-transparent bg-accent text-white hover:bg-[#0F2840]">
+                    Start for free →
+                </Link>
+                <Link href="#" className="inline-flex items-center justify-center px-8 py-3 rounded-full text-base font-medium transition-all no-underline border-[1.5px] border-paper-border bg-transparent text-ink-muted hover:border-ink-muted hover:text-ink">
+                    See a demo
+                </Link>
+            </motion.div>
+
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.4 }}
+                className="flex items-center gap-4 mt-16"
+            >
+                <div className="flex">
+                    {['PK', 'SR', 'AN', 'MB', '+'].map((initial, i) => (
+                        <span 
+                            key={i} 
+                            className={cn(
+                                "w-8 h-8 rounded-full bg-paper-mid border-2 border-paper flex items-center justify-center text-[0.65rem] font-medium text-ink-muted -ml-2 first:ml-0",
+                                i === 4 && "bg-paper-border"
+                            )}
+                        >
+                            {initial}
                         </span>
-                    </h1>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="max-w-2xl text-muted-foreground text-lg sm:text-xl"
-                >
-                    <p>
-                        The AI research assistant designed for elite academics.
-                        From deep literature review to semantic knowledge graphs,
-                        all in one seamless interface.
-                    </p>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="flex flex-col sm:flex-row gap-4"
-                >
-                    <Link href="/signup">
-                        <Button size="lg" className="gap-2 text-md h-12 px-8 rounded-full shadow-lg shadow-primary/20">
-                            Get Started for Free <ArrowRight className="h-4 w-4" />
-                        </Button>
-                    </Link>
-                    <Link href="#features">
-                        <Button variant="outline" size="lg" className="text-md h-12 px-8 rounded-full">
-                            Learn More
-                        </Button>
-                    </Link>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                    className="text-xs text-muted-foreground mt-4"
-                >
-                    No credit card required · Free tier available
-                </motion.div>
-            </div>
+                    ))}
+                </div>
+                <p className="text-[0.8rem] text-ink-muted">
+                    <strong className="font-medium text-ink">1,200+ researchers</strong> from 40+ universities trust ResearchAI
+                </p>
+            </motion.div>
         </section>
     )
 }

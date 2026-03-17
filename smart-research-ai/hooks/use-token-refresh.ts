@@ -36,10 +36,9 @@ export function useTokenRefresh() {
                 console.log('Token expiring soon, refreshing...')
 
                 // Request new token from backend
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh`, {
+                const response = await fetch(`/api/v1/auth/refresh?refresh_token=${user.refresh_token}`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${user.access_token}`,
                         'Content-Type': 'application/json'
                     }
                 })
@@ -48,7 +47,8 @@ export function useTokenRefresh() {
                     const data = await response.json()
                     setUser({
                         ...user,
-                        access_token: data.access_token
+                        access_token: data.access_token,
+                        refresh_token: data.refresh_token
                     })
                     console.log('Token refreshed successfully')
                 } else {

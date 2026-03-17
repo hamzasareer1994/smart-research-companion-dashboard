@@ -4,124 +4,203 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { useUserStore, UserTier } from "@/lib/store"
+import { useUserStore } from "@/lib/store"
+import { projectService, ProjectResponse } from "@/services/project"
+import { useEffect, useState } from "react"
 import {
-    LayoutDashboard,
-    Search,
-    FolderOpen,
-    Upload,
+    LayoutGrid,
+    Briefcase,
+    Library,
     MessageSquare,
-    History,
-    Settings,
-    Crown,
+    Search as SearchIcon,
+    Network,
+    PenTool,
+    Zap,
+    FileText,
+    CreditCard,
+    ChevronLeft,
+    ChevronRight,
     Menu
 } from "lucide-react"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import {
     Sheet,
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { QuotaIndicator } from "./quota-indicator"
 
-interface SidebarItem {
-    icon: any
-    label: string
-    href: string
-    minTier?: UserTier
+interface SidebarProps {
+    isCollapsed: boolean
+    toggleCollapse: () => void
+    className?: string
 }
 
-const TIER_LEVELS: Record<UserTier, number> = {
-    student: 1,
-    professor: 2,
-    researcher: 3,
-}
-
-const sidebarItems: SidebarItem[] = [
-    { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
-    { icon: Search, label: "Search", href: "/dashboard/search" },
-    { icon: FolderOpen, label: "Projects", href: "/dashboard/projects" },
-    { icon: Upload, label: "Upload", href: "/dashboard/upload" },
-    { icon: MessageSquare, label: "Chat", href: "/dashboard/chat" },
-    { icon: History, label: "Logs", href: "/dashboard/logs", minTier: "professor" },
-    { icon: Settings, label: "Settings", href: "/dashboard/settings" },
-]
-
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
-
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ isCollapsed, toggleCollapse, className }: SidebarProps) {
     const pathname = usePathname()
     const { user } = useUserStore()
+    const [projects, setProjects] = useState<ProjectResponse[]>([])
 
-    // Tier Check Logic
-    const userTier = user?.tier || "student"
-    const userLevel = TIER_LEVELS[userTier]
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const data = await projectService.getProjects()
+                setProjects(data)
+            } catch (error) {
+                console.error("Failed to fetch projects")
+            }
+        }
+        fetchProjects()
+    }, [])
 
-    const filteredItems = sidebarItems.filter(item => {
-        if (!item.minTier) return true
-        return userLevel >= TIER_LEVELS[item.minTier]
-    })
+    const navItems = [
+        { label: "Workspace", type: "label" },
+        { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+        { icon: Briefcase, label: "Projects", href: "/dashboard/projects", badge: projects.length || null },
+        { icon: Library, label: "Paper Library", href: "/dashboard/library" },
+        { icon: MessageSquare, label: "AI Chat", href: "/dashboard/chat" },
+        { icon: SearchIcon, label: "Search Papers", href: "/dashboard/search" },
+        
+        { label: "AI Tools", type: "label" },
+        { icon: Network, label: "Literature Map", href: "/dashboard/lit-map" },
+        { icon: PenTool, label: "Writing Assistant", href: "/dashboard/writing" },
+        { icon: Zap, label: "SLR Engine", href: "/dashboard/slr", premium: true },
+        { icon: FileText, label: "Smart Reader", href: "/dashboard/reader" },
+        
+        { label: "Account", type: "label" },
+        { icon: CreditCard, label: "Billing", href: "/dashboard/billing" },
+    ]
 
-    // Credit Logic
-    const maxCredits = userTier === "student" ? 128000 : userTier === "professor" ? 500000 : 1000000
-    const currentCredits = user?.credits || 0
-    const progress = Math.min((currentCredits / maxCredits) * 100, 100)
-
-    // Reverse progress for "consumption" visual (stars with 100%, goes down)
-    // Or "usage" visual (starts with 0%, goes up)?
-    // Usually credits mean "balance". So 100% balance is good. 0% is bad.
-    // Progress bar usually fills up. So let's show % of credits REMAINING.
+    const creditBalance = (user?.credit_balance_cents || 0) / 100
+    const usedCredits = 720 // This should come from an API normally
+    const totalCredits = 2000
+    const creditPercentage = (usedCredits / totalCredits) * 100
 
     return (
-        <div className={cn("pb-12 h-full border-r bg-sidebar flex flex-col", className)}>
-            <div className="space-y-4 py-4 flex-1">
-                <div className="px-3 py-2">
-                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-sidebar-foreground">
-                        Smart Research
-                    </h2>
-                    <div className="space-y-1">
-                        {filteredItems.map((item) => (
-                            <Button
-                                key={item.href}
-                                variant={pathname === item.href ? "secondary" : "ghost"}
-                                className={cn(
-                                    "w-full justify-start",
-                                    pathname === item.href && "bg-sidebar-accent text-sidebar-accent-foreground"
-                                )}
-                                asChild
-                            >
-                                <Link href={item.href}>
-                                    <item.icon className="mr-2 h-4 w-4" />
-                                    {item.label}
-                                </Link>
-                            </Button>
-                        ))}
-                    </div>
-                </div>
+        <aside className={cn(
+            "sidebar group/sidebar bg-surface border-r border-border h-screen flex flex-col transition-all duration-300 z-50 overflow-hidden",
+            isCollapsed ? "w-[56px]" : "w-[240px]",
+            className
+        )}>
+            {/* Zone 1: Top & Project Picker */}
+            <div className="sidebar-top flex items-center h-[58px] px-3 gap-2 border-b border-border transition-all">
+                <Link href="/dashboard" className="logo flex items-center gap-2 flex-1 min-w-0">
+                    <span className="logo-dot w-[7px] h-[7px] rounded-full bg-gold shrink-0" />
+                    {!isCollapsed && (
+                        <span className="logo-text font-serif text-[1.1rem] text-accent-text whitespace-nowrap overflow-hidden">
+                            Research<em className="italic">AI</em>
+                        </span>
+                    )}
+                </Link>
+                <button 
+                    onClick={toggleCollapse}
+                    className="collapse-btn w-7 h-7 rounded-md border border-border bg-transparent text-ink3 hover:bg-bg2 hover:text-ink flex items-center justify-center shrink-0 transition-all"
+                >
+                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                </button>
             </div>
 
-            {/* Credit Status / Plan Badge */}
-            <div className="mt-auto border-t bg-muted/10">
-                <div className="px-4 py-3 flex items-center gap-2 border-b bg-muted/5">
-                    <Crown className="w-4 h-4 text-yellow-500" />
-                    <span className="text-xs font-bold uppercase tracking-widest">{userTier} Plan</span>
+            {!isCollapsed && (
+                <div className="project-picker p-3 border-b border-border">
+                    <Select>
+                        <SelectTrigger className="w-full h-8 bg-bg2 border-border text-[0.8rem] rounded-md px-2.5">
+                            <SelectValue placeholder="Select Project" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-border shadow-2xl">
+                            {projects.map(p => (
+                                <SelectItem key={p.id} value={p.id} className="text-[0.8rem]">
+                                    {p.name}
+                                </SelectItem>
+                            ))}
+                            <SelectItem value="new" className="text-[0.8rem] font-medium text-gold">
+                                + New Project
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-                <QuotaIndicator />
-            </div>
-        </div>
+            )}
+
+            {/* Zone 2: Navigation */}
+            <nav className="sidebar-nav flex-1 py-2 px-3 overflow-y-auto custom-scrollbar">
+                {navItems.map((item, idx) => {
+                    if (item.label && item.type === "label") {
+                        return !isCollapsed ? (
+                            <div key={idx} className="nav-section-label text-[0.65rem] font-bold uppercase tracking-wider text-ink4 px-2 mt-4 mb-1">
+                                {item.label}
+                            </div>
+                        ) : <div key={idx} className="h-4" />;
+                    }
+
+                    const Icon = item.icon!
+                    const isActive = pathname === item.href
+
+                    return (
+                        <Link 
+                            key={idx}
+                            href={item.href || "#"}
+                            className={cn(
+                                "nav-item flex items-center gap-2.5 p-2 rounded-md transition-all text-ink3 hover:bg-bg2 hover:text-ink min-h-[36px]",
+                                isActive && "bg-accent-light text-accent-text font-medium",
+                                isCollapsed && "justify-center px-0"
+                            )}
+                        >
+                            <Icon size={16} className={cn("shrink-0", isActive ? "opacity-100" : "opacity-70")} />
+                            {!isCollapsed && (
+                                <>
+                                    <span className="text-[0.82rem]">{item.label}</span>
+                                    {item.badge && <span className="ml-auto bg-teal-bg text-teal-text text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full">{item.badge}</span>}
+                                    {item.premium && <span className="ml-auto bg-gold-bg text-gold-text text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full">Pro</span>}
+                                </>
+                            )}
+                        </Link>
+                    )
+                })}
+            </nav>
+
+            {/* Zone 3: Credits Card */}
+            {!isCollapsed && (
+                <div className="sidebar-footer p-3 border-t border-border">
+                    <div className="credits-card bg-bg2 rounded-xl p-3">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-[0.7rem] font-medium text-ink3">Credits Remaining</span>
+                            <span className="text-[0.8rem] font-bold text-ink">${creditBalance.toFixed(2)}</span>
+                        </div>
+                        <div className="credits-track h-1 bg-border rounded-full overflow-hidden mb-2">
+                            <div 
+                                className="credits-fill h-full bg-gradient-to-r from-teal to-[#2DB892] transition-all" 
+                                style={{ width: `${creditPercentage}%` }}
+                            />
+                        </div>
+                        <div className="text-[0.68rem] text-ink4">
+                            {usedCredits} / {totalCredits} credits used
+                        </div>
+                        <Link href="/dashboard/billing" className="credits-upgrade block mt-2 text-center bg-gold text-white p-1.5 rounded-md text-[0.75rem] font-medium hover:opacity-90 transition-opacity">
+                            Upgrade to Pro →
+                        </Link>
+                    </div>
+                </div>
+            )}
+        </aside>
     )
 }
 
 export function MobileSidebar() {
+    const [open, setOpen] = useState(false)
+    
     return (
-        <Sheet>
+        <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" suppressHydrationWarning>
+                <Button variant="ghost" size="icon" className="md:hidden">
                     <Menu className="h-5 w-5" />
-                    <span className="sr-only">Toggle Sidebar</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 text-sidebar-foreground bg-sidebar">
-                <Sidebar className="border-none" />
+            <SheetContent side="left" className="p-0 border-none w-[240px]">
+                <Sidebar isCollapsed={false} toggleCollapse={() => setOpen(false)} className="w-full" />
             </SheetContent>
         </Sheet>
     )

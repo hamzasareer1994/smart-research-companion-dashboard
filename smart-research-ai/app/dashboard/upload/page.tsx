@@ -1,43 +1,39 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-    Upload,
-    FileIcon,
-    X,
-    AlertCircle,
-    CheckCircle2,
-    Loader2,
-    Search,
-    ChevronDown,
-    Layers,
-    FileSearch2,
-    Database,
-    Sparkles
+import React, { useState, useEffect, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+    Upload, 
+    FileIcon, 
+    X, 
+    CheckCircle2, 
+    Loader2, 
+    Database, 
+    Sparkles, 
+    ArrowRight, 
+    Shield, 
+    Zap,
+    Info,
+    Inbox
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { useUserStore, UserTier } from "@/lib/store"
-import { UpgradeModal } from "@/components/upgrade-modal"
-import { toast } from "sonner"
 import { projectService, ProjectResponse } from "@/services/project"
-import LivingDocumentAnimation from "@/components/LivingDocumentAnimation"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import {
     Select,
     SelectContent,
     SelectItem,
-    SelectSeparator,
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { cn } from "@/lib/utils"
 
 const UPLOAD_LIMITS: Record<UserTier, number> = {
     student: 10,
     professor: 50,
-    researcher: 99999,
+    researcher: 999,
 }
 
 interface UploadingFile {
@@ -55,39 +51,33 @@ export default function UploadPage() {
 
     const [projects, setProjects] = useState<ProjectResponse[]>([])
     const [selectedProjectId, setSelectedProjectId] = useState<string>("")
-    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
     const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([])
     const [isDragActive, setIsDragActive] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const data = await projectService.getProjects()
+                setProjects(data)
+                if (data.length > 0) setSelectedProjectId(data[0].id)
+            } catch (error) {
+                console.error("Failed to fetch projects")
+            }
+        }
         fetchProjects()
     }, [])
 
-    const fetchProjects = async () => {
-        try {
-            const data = await projectService.getProjects()
-            setProjects(data)
-            if (data.length > 0) setSelectedProjectId(data[0].id)
-        } catch (error) {
-            console.error("Failed to fetch projects")
-        }
-    }
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            handleFiles(Array.from(e.target.files))
-        }
-    }
-
     const handleFiles = (files: File[]) => {
-        const pdfs = files.filter(f => f.name.endsWith(".pdf"))
+        const pdfs = files.filter(f => f.name.toLowerCase().endsWith(".pdf"))
+        
         if (pdfs.length === 0) {
-            toast.error("Please select only PDF files.")
+            toast.error("Invalid File Type", { description: "Please upload PDF documents only." })
             return
         }
 
         if (uploadingFiles.length + pdfs.length > limit) {
-            setIsUpgradeModalOpen(true)
+            toast.warning("Limit Reached", { description: `Your tier allows up to ${limit} files per project.` })
             return
         }
 
@@ -103,57 +93,39 @@ export default function UploadPage() {
 
     const startUpload = async () => {
         if (!selectedProjectId) {
-            toast.error("Please select a project first.")
+            toast.error("No Project Selected", { description: "Please select a project to upload your papers to." })
             return
         }
 
         const pendingFiles = uploadingFiles.filter(f => f.status === 'pending')
         if (pendingFiles.length === 0) return
 
-        // Mark as uploading
-        setUploadingFiles(prev => prev.map(f => f.status === 'pending' ? { ...f, status: 'uploading', progress: 10 } : f))
-
-        // Simulate upload progress
-        const progressInterval = setInterval(() => {
-            setUploadingFiles(prev => prev.map(f => {
-                if (f.status === 'uploading' && f.progress < 40) {
-                    return { ...f, progress: f.progress + 5 }
-                }
-                if (f.status === 'processing' && f.progress < 90) {
-                    return { ...f, progress: f.progress + 2 }
-                }
-                return f
-            }))
-        }, 500)
+        // Update status to uploading
+        setUploadingFiles(prev => prev.map(f => 
+            f.status === 'pending' ? { ...f, status: 'uploading', progress: 10 } : f
+        ))
 
         try {
             const filesToUpload = pendingFiles.map(f => f.file)
             const result = await projectService.uploadFiles(selectedProjectId, filesToUpload)
 
-            clearInterval(progressInterval)
-
-            const successCount = result.results.filter((r: any) => r.status === 'processing').length
-            const errorCount = result.results.filter((r: any) => r.status === 'error').length
-
             // Map results back to local state
             setUploadingFiles(prev => prev.map(f => {
                 const res = result.results.find((r: any) => r.filename === f.file.name)
                 if (res) {
-                    const status = res.status === 'processing' ? 'processing' : 'error'
-                    return { ...f, status, progress: status === 'processing' ? 45 : f.progress, error: res.message }
+                    const status = res.status === 'processing' ? 'completed' : 'error'
+                    return { ...f, status, progress: status === 'completed' ? 100 : f.progress, error: res.message }
                 }
                 return f
             }))
 
+            const successCount = result.results.filter((r: any) => r.status === 'processing').length
             if (successCount > 0) {
-                toast.success(`Processing ${successCount} papers. ${errorCount > 0 ? `${errorCount} failed.` : ''}`)
-            } else if (errorCount > 0) {
-                toast.error(`Failed to process ${errorCount} papers.`)
+                toast.success("Success", { description: `Successfully indexed ${successCount} papers to Milvus.` })
             }
         } catch (error: any) {
-            clearInterval(progressInterval)
             setUploadingFiles(prev => prev.map(f => f.status === 'uploading' ? { ...f, status: 'error', error: error.message } : f))
-            toast.error(error.message || "Upload failed")
+            toast.error("Upload Failed", { description: error.message || "An unexpected error occurred." })
         }
     }
 
@@ -161,210 +133,216 @@ export default function UploadPage() {
         setUploadingFiles(prev => prev.filter(f => f.id !== id))
     }
 
-    const isAtLimit = uploadingFiles.length >= limit
-
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                        Research Engine
-                    </h2>
-                    <p className="text-muted-foreground mt-2 text-lg">
-                        Upload papers to build your project's knowledge base.
-                    </p>
-                </div>
-                <div className="flex items-center gap-3 bg-muted/30 px-4 py-2 rounded-full border border-dashed border-primary/20 backdrop-blur-sm shadow-inner">
-                    <Layers className="h-4 w-4 text-primary" />
-                    <span className="text-xs font-semibold uppercase tracking-wider opacity-60">Daily Limit:</span>
-                    <span className={cn("text-sm font-bold", isAtLimit ? 'text-destructive' : 'text-primary')}>
-                        {uploadingFiles.length} / {userTier === 'researcher' ? '∞' : limit}
-                    </span>
-                </div>
+        <div className="p-6 md:p-10 max-w-6xl mx-auto animate-fade-up">
+            <div className="mb-10 text-center md:text-left">
+                <h1 className="text-3xl md:text-4xl font-serif text-ink mb-2">
+                    Research <em className="italic">Indexing Engine</em>
+                </h1>
+                <p className="text-ink3 text-[0.95rem] max-w-2xl">
+                    Upload your research papers for semantic indexing. Our engine extracts vectors and stores them in Milvus for grounded AI reasoning.
+                </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="md:col-span-2 space-y-6">
-                    {/* Project Selector */}
-                    <Card className="border-none shadow-xl bg-card/50 backdrop-blur-md overflow-hidden group">
-                        <div className="h-1 w-full bg-gradient-to-r from-primary/50 to-purple-600/50" />
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-bold flex items-center gap-2 group-hover:text-primary transition-colors">
-                                <Database className="h-4 w-4" />
-                                1. Select Destination Project
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-                                <SelectTrigger className="bg-background/80 h-12 rounded-xl border-muted-foreground/10 hover:border-primary/50 transition-all shadow-sm">
-                                    <SelectValue placeholder="Chose a project workspace..." />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl border-none shadow-2xl">
-                                    {projects.map(p => (
-                                        <SelectItem key={p.id} value={p.id} className="rounded-lg py-3 focus:bg-primary/10">
-                                            <div className="flex flex-col items-start gap-0.5">
-                                                <span className="font-bold">{p.name}</span>
-                                                <span className="text-[10px] opacity-60">{p.paper_count} existing papers</span>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                    <SelectSeparator />
-                                    <SelectItem value="new" disabled>+ Create New Project</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </CardContent>
-                    </Card>
-
-                    {/* Dropzone or Animation */}
-                    {uploadingFiles.some(f => f.status === 'uploading' || f.status === 'processing') ? (
-                        <div className="h-[300px] flex items-center justify-center bg-muted/10 rounded-3xl border-2 border-dashed border-primary/20">
-                            {(() => {
-                                const activeFile = uploadingFiles.find(f => f.status === 'uploading' || f.status === 'processing')
-                                return (
-                                    <LivingDocumentAnimation
-                                        status={activeFile?.status === 'uploading' ? 'uploading' : 'processing'}
-                                        progress={activeFile?.progress || 0}
-                                        filename={activeFile?.file.name}
-                                    />
-                                )
-                            })()}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Step 1: Configuration */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-surface border border-border rounded-2xl p-6 shadow-sm"
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center font-bold text-sm">1</div>
+                            <h3 className="text-lg font-bold text-ink flex items-center gap-2">
+                                <Database size={18} className="text-accent" /> Select Destination Project
+                            </h3>
                         </div>
-                    ) : (
-                        <Card
-                            className={cn(
-                                "border-4 border-dashed rounded-3xl transition-all relative overflow-hidden h-[300px] flex items-center justify-center group",
-                                isDragActive ? "border-primary bg-primary/5 scale-[0.98]" : "border-muted-foreground/10 hover:border-primary/20 hover:bg-muted/10",
-                                isAtLimit && "opacity-50 grayscale pointer-events-none"
-                            )}
-                            onDragOver={(e) => { e.preventDefault(); setIsDragActive(true); }}
-                            onDragLeave={() => setIsDragActive(false)}
-                            onDrop={(e) => { e.preventDefault(); setIsDragActive(false); handleFiles(Array.from(e.dataTransfer.files)); }}
-                        >
-                            <input
-                                type="file"
-                                multiple
-                                accept=".pdf"
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                onChange={handleFileChange}
-                                disabled={isAtLimit}
-                            />
-                            <CardContent className="flex flex-col items-center justify-center text-center p-8">
-                                <div className="relative mb-6">
-                                    <div className="absolute -inset-4 bg-primary/20 rounded-full blur-2xl animate-pulse group-hover:bg-primary/40 transition-all" />
-                                    <div className="relative p-6 rounded-2xl bg-gradient-to-br from-primary to-purple-600 shadow-2xl text-white transform group-hover:scale-110 group-hover:-rotate-3 transition-transform">
-                                        <Upload className="h-10 w-10" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[0.75rem] font-bold text-ink4 uppercase tracking-wider">Target Project</label>
+                                <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                                    <SelectTrigger className="w-full h-11 bg-bg2 border-border text-[0.9rem] rounded-xl px-4">
+                                        <SelectValue placeholder="Chose a project..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl border-border shadow-2xl">
+                                        {projects.map(p => (
+                                            <SelectItem key={p.id} value={p.id} className="py-3 px-4 focus:bg-accent-light">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-ink">{p.name}</span>
+                                                    <span className="text-[0.7rem] text-ink4">{p.paper_count || 0} existing papers</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                        <SelectItem value="new" className="text-gold font-bold">+ Create New Project</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-end">
+                                <div className="bg-bg2/50 border border-border rounded-xl p-4 w-full flex items-center gap-3">
+                                    <Shield size={20} className="text-teal" />
+                                    <div className="text-[0.75rem] text-ink3 leading-tight">
+                                        Indexed papers are isolated within project namespaces for high precision retrieval.
                                     </div>
                                 </div>
-                                <h3 className="text-xl font-bold tracking-tight">Drop your research PDFs here</h3>
-                                <p className="text-muted-foreground mt-2 max-w-[280px]">
-                                    We'll instantly process, chunk, and index them for a grounded AI experience.
-                                </p>
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-primary/60 mt-4 group-hover:text-primary transition-colors">
-                                    Max 50MB per file • PDF Only
-                                </p>
-                            </CardContent>
-                        </Card>
-                    )}
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Step 2: Dropzone */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className={cn(
+                            "relative group rounded-3xl border-2 border-dashed transition-all duration-300 h-[320px] flex flex-col items-center justify-center p-8 overflow-hidden",
+                            isDragActive ? "border-gold bg-gold-bg/30 scale-[0.99]" : "border-border hover:border-accent/40 bg-bg2/30",
+                            uploadingFiles.length >= limit && "opacity-50 pointer-events-none"
+                        )}
+                        onDragOver={(e) => { e.preventDefault(); setIsDragActive(true); }}
+                        onDragLeave={() => setIsDragActive(false)}
+                        onDrop={(e) => { e.preventDefault(); setIsDragActive(false); handleFiles(Array.from(e.dataTransfer.files)); }}
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            className="hidden" 
+                            multiple 
+                            accept=".pdf" 
+                            onChange={(e) => handleFiles(Array.from(e.target.files || []))}
+                        />
+
+                        {/* Animated background pulse */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                            <div className="w-20 h-20 bg-surface border border-border rounded-2xl shadow-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                                <Upload size={32} className="text-gold" />
+                            </div>
+                            <h3 className="text-xl font-bold text-ink mb-2">Drop your research PDFs here</h3>
+                            <p className="text-ink3 text-[0.85rem] max-w-sm mb-6">
+                                Or click to browse. We'll automatically convert them into high-dimensional vectors.
+                            </p>
+                            
+                            <div className="flex items-center gap-6 text-[0.7rem] font-bold text-ink4 uppercase tracking-widest">
+                                <span className="flex items-center gap-1.5"><Zap size={14} className="text-gold" /> Fast chunking</span>
+                                <span className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-teal" /> PDF OCR support</span>
+                            </div>
+                        </div>
+
+                        {/* Progress feedback for active uploads */}
+                        <AnimatePresence>
+                            {uploadingFiles.some(f => f.status === 'uploading') && (
+                                <motion.div 
+                                    initial={{ opacity: 0 }} 
+                                    animate={{ opacity: 1 }} 
+                                    exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-surface/80 backdrop-blur-sm flex flex-col items-center justify-center"
+                                >
+                                    <div className="w-16 h-16 mb-6">
+                                        <div className="w-full h-full border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-ink mb-1">Indexing in Progress</h4>
+                                    <p className="text-ink3 text-[0.8rem]">Running embedding models and storing in Milvus...</p>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
                 </div>
 
-                {/* Queue / Status Panel */}
+                {/* Queue & Status Sidebar */}
                 <div className="space-y-6">
-                    <Card className="border-none shadow-xl bg-muted/20 backdrop-blur-xl h-full flex flex-col min-h-[460px]">
-                        <CardHeader className="p-4 border-b border-muted">
-                            <div className="flex justify-between items-center">
-                                <CardTitle className="text-xs font-bold uppercase tracking-widest opacity-60">Upload Queue</CardTitle>
-                                {uploadingFiles.length > 0 && (
-                                    <Badge variant="secondary" className="bg-primary/10 text-primary h-5 px-1.5 font-bold">
-                                        {uploadingFiles.length}
-                                    </Badge>
-                                )}
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-0 flex-1 flex flex-col">
+                    <div className="bg-surface border border-border rounded-2xl flex flex-col shadow-sm h-full min-h-[500px]">
+                        <div className="p-4 border-b border-border flex items-center justify-between">
+                            <h3 className="text-[0.75rem] font-bold text-ink4 uppercase tracking-wider">Upload Queue</h3>
+                            <Badge className="bg-bg2 text-ink3 border-border">{uploadingFiles.length} / {limit}</Badge>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                             {uploadingFiles.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-30 select-none">
-                                    <FileIcon className="h-12 w-12 mb-4" />
-                                    <p className="text-xs font-medium">No files selected</p>
+                                <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-30 italic">
+                                    <Inbox size={40} className="mb-4" />
+                                    <p className="text-[0.8rem]">Queue is empty. Select papers to begin.</p>
                                 </div>
                             ) : (
-                                <div className="p-3 space-y-3 overflow-y-auto max-h-[400px]">
-                                    {uploadingFiles.map((file) => (
-                                        <div key={file.id} className="p-3 rounded-2xl bg-card border group relative animate-in slide-in-from-right-4 transition-all hover:shadow-md">
+                                <AnimatePresence mode="popLayout">
+                                    {uploadingFiles.map((f) => (
+                                        <motion.div 
+                                            key={f.id}
+                                            layout
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -20 }}
+                                            className="p-3 rounded-xl bg-bg2/50 border border-border group relative overflow-hidden"
+                                        >
                                             <div className="flex items-center gap-3">
                                                 <div className={cn(
-                                                    "p-2 rounded-xl transition-colors",
-                                                    file.status === 'completed' ? "bg-green-500/10 text-green-500" :
-                                                        file.status === 'error' ? "bg-red-500/10 text-red-500" : "bg-primary/10 text-primary"
+                                                    "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                                                    f.status === 'completed' ? "bg-teal-bg text-teal" : 
+                                                    f.status === 'error' ? "bg-red-bg text-red" : "bg-white text-accent"
                                                 )}>
-                                                    {file.status === 'processing' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileIcon className="h-4 w-4" />}
+                                                    {f.status === 'completed' ? <CheckCircle2 size={16} /> : 
+                                                     f.status === 'uploading' ? <Loader2 size={16} className="animate-spin" /> : <FileIcon size={16} />}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-bold text-xs truncate pr-6">{file.file.name}</p>
-                                                    <p className="text-[10px] opacity-60 uppercase font-bold tracking-tighter">
-                                                        {(file.file.size / (1024 * 1024)).toFixed(2)} MB • {file.status}
-                                                    </p>
+                                                    <div className="text-[0.8rem] font-bold text-ink truncate pr-6">{f.file.name}</div>
+                                                    <div className="text-[0.65rem] text-ink4 uppercase tracking-tighter">{(f.file.size / (1024 * 1024)).toFixed(1)} MB • {f.status}</div>
                                                 </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-destructive/10 hover:text-destructive"
-                                                    onClick={() => removeFile(file.id)}
+                                                <button 
+                                                    onClick={() => removeFile(f.id)}
+                                                    className="absolute top-2 right-2 text-ink4 hover:text-red transition-colors opacity-0 group-hover:opacity-100"
                                                 >
-                                                    <X className="h-3 w-3" />
-                                                </Button>
+                                                    <X size={14} />
+                                                </button>
                                             </div>
 
-                                            {(file.status === 'uploading' || file.status === 'processing') && (
-                                                <div className="mt-3 space-y-2">
-                                                    <div className="flex justify-between items-center text-[8px] font-bold uppercase tracking-widest text-primary">
-                                                        <span className="flex items-center gap-1">
-                                                            {file.status === 'uploading' ? <Upload className="h-2.5 w-2.5" /> : <FileSearch2 className="h-2.5 w-2.5" />}
-                                                            {file.status === 'uploading' ? 'Uploading...' : 'Analyzing Chunks...'}
-                                                        </span>
-                                                        <span>{file.status === 'uploading' ? 'Transfer' : 'Indexing'}</span>
-                                                    </div>
-                                                    <Progress value={file.progress} className="h-1 bg-primary/10" />
+                                            {f.status === 'uploading' && (
+                                                <div className="mt-3 space-y-1">
+                                                    <Progress value={f.progress} className="h-1 bg-white" />
+                                                    <div className="text-[0.6rem] text-accent font-bold uppercase tracking-widest text-right">Processing...</div>
                                                 </div>
                                             )}
-                                        </div>
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </AnimatePresence>
                             )}
+                        </div>
 
-                            {uploadingFiles.length > 0 && (
-                                <div className="p-4 bg-background/50 border-t mt-auto">
-                                    <Button
-                                        className="w-full h-12 rounded-xl font-bold bg-gradient-to-r from-primary to-purple-600 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                                        onClick={startUpload}
-                                        disabled={uploadingFiles.every(f => f.status !== 'pending')}
-                                    >
-                                        {uploadingFiles.some(f => f.status === 'uploading' || f.status === 'processing') ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                AI Processing In Progress...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sparkles className="mr-2 h-4 w-4" />
-                                                Scale Upload & Start RAG
-                                            </>
-                                        )}
-                                    </Button>
+                        {uploadingFiles.length > 0 && (
+                            <div className="p-4 bg-bg2/30 border-t border-border space-y-4">
+                                <div className="bg-accent-light rounded-xl p-3 flex gap-3">
+                                    <Sparkles size={16} className="text-accent shrink-0" />
+                                    <div className="text-[0.7rem] text-accent-text leading-tight">
+                                        Your papers will be summarized via <strong className="font-bold">GPT-4o</strong> after indexing.
+                                    </div>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                <Button 
+                                    className="w-full h-12 bg-accent text-white rounded-xl shadow-lg shadow-accent/20 hover:opacity-90 font-bold flex items-center justify-center gap-2"
+                                    onClick={startUpload}
+                                    disabled={uploadingFiles.every(f => f.status !== 'pending')}
+                                >
+                                    Start Indexing Engine <ArrowRight size={18} />
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Pro Tip Card */}
+                    <div className="bg-gold-bg/50 border border-gold/20 rounded-2xl p-5">
+                        <div className="flex items-start gap-3">
+                            <Info size={18} className="text-gold shrink-0 mt-0.5" />
+                            <div>
+                                <h4 className="text-[0.85rem] font-bold text-gold-text">Indexing Tip</h4>
+                                <p className="text-[0.75rem] text-gold-text/80 mt-1 leading-relaxed">
+                                    For better AI search, ensure papers have clear titles and abstracts. We'll automatically handle multi-column layouts.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <UpgradeModal
-                isOpen={isUpgradeModalOpen}
-                onOpenChange={setIsUpgradeModalOpen}
-                title="Increase Upload Capacity"
-                description={`The ${userTier} plan allows up to ${limit} uploads per day. Upgrade to process more papers and accelerate your literature review.`}
-                requiredTier={userTier === 'student' ? 'professor' : 'researcher'}
-                feature="higher daily upload limits"
-            />
         </div>
     )
 }

@@ -1,22 +1,6 @@
-[00:00:01.401] Server  LOG     ✓ Ready in 1037ms
-[00:00:21.353] Server  LOG     ○ Compiling / ...
-[00:00:22.841] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:48.832] Server  ERROR   (node:1908) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+[00:00:01.233] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:01.357] Server  LOG     ✓ Ready in 1063ms
+[00:00:02.479] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:56:38.511] Server  ERROR   (node:1820) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-[00:00:51.333] Browser ERROR   Failed to fetch quotas {}
-[00:00:51.333] Browser ERROR   Failed to fetch dashboard data {}
-[00:00:52.816] Browser ERROR   Failed to fetch quotas {}
-[00:00:53.590] Browser ERROR   Failed to fetch dashboard data {}
-[00:00:56.917] Browser LOG     Fetched projects: []
-[00:00:56.917] Browser LOG     Projects length: 0
-[00:00:56.918] Browser LOG     Projects type: object true
-[00:00:57.590] Browser LOG     Fetched projects: []
-[00:00:57.590] Browser LOG     Projects length: 0
-[00:00:57.590] Browser LOG     Projects type: object true
-[00:01:51.287] Browser ERROR   Failed to fetch quotas {}
-[00:02:13.764] Browser LOG     Fetched projects: []
-[00:02:13.764] Browser LOG     Projects length: 0
-[00:02:13.764] Browser LOG     Projects type: object true
-[00:02:14.379] Browser LOG     Fetched projects: []
-[00:02:14.379] Browser LOG     Projects length: 0
-[00:02:14.379] Browser LOG     Projects type: object true
+[00:56:42.260] Server  LOG     ○ Compiling /dashboard ...

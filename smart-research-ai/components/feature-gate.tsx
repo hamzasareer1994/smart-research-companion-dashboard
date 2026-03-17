@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 const TIER_LEVELS: Record<UserTier, number> = {
-    student: 1,
-    professor: 2,
-    researcher: 3,
+    payg: 1,
+    pro: 2,
 }
 
 interface FeatureGateProps {
@@ -26,7 +25,7 @@ export function FeatureGate({
 }: FeatureGateProps) {
     const user = useUserStore((state) => state.user)
 
-    const userTier = user?.tier || "student"
+    const userTier = user?.tier || "payg"
     const currentLevel = TIER_LEVELS[userTier]
     const requiredLevel = TIER_LEVELS[minTier]
 

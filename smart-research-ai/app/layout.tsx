@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit } from "next/font/google";
+import { Instrument_Serif, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
-const outfit = Outfit({ subsets: ['latin'], variable: '--font-sans' });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const serif = Instrument_Serif({ 
+  subsets: ['latin'], 
+  weight: ['400'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif' 
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const sans = DM_Sans({ 
+  subsets: ['latin'], 
+  variable: '--font-sans' 
+});
+
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono'
 });
 
 export const metadata: Metadata = {
@@ -27,9 +32,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={outfit.variable} suppressHydrationWarning>
+    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="antialiased"
       >
         <ThemeProvider
           attribute="class"
