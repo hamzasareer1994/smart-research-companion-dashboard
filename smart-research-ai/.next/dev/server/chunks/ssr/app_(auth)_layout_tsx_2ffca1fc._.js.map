@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///E:/Smart%20Research%20Companion/smart-research-companion-dashboard/smart-research-ai/app/%28auth%29/layout.tsx"],"sourcesContent":["export default function AuthLayout({\r\n    children,\r\n}: {\r\n    children: React.ReactNode\r\n}) {\r\n    return (\r\n        <div className=\"flex min-h-screen items-center justify-center p-4 bg-muted/30\">\r\n            <div className=\"w-full max-w-sm space-y-4\">\r\n                {children}\r\n            </div>\r\n        </div>\r\n    )\r\n}\r\n"],"names":[],"mappings":";;;;;;AAAe,SAAS,WAAW,EAC/B,QAAQ,EAGX;IACG,qBACI,8OAAC;QAAI,WAAU;kBACX,cAAA,8OAAC;YAAI,WAAU;sBACV;;;;;;;;;;;AAIjB"}}]
-}
