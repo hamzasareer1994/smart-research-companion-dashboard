@@ -314,9 +314,9 @@ function HeroSection() {
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                        href: "#",
+                        href: "#features",
                         className: "inline-flex items-center justify-center px-8 py-3 rounded-full text-base font-medium transition-all no-underline border-[1.5px] border-paper-border bg-transparent text-ink-muted hover:border-ink-muted hover:text-ink",
-                        children: "See a demo"
+                        children: "See features"
                     }, void 0, false, {
                         fileName: "[project]/components/landing/hero.tsx",
                         lineNumber: 49,
@@ -1037,8 +1037,49 @@ __turbopack_context__.s([
     ()=>ProFeaturesSection
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/framer-motion/dist/es/render/components/motion/proxy.mjs [app-client] (ecmascript)");
 "use client";
 ;
+;
+;
+const PRO_FEATURES = [
+    {
+        icon: "🔬",
+        title: "Auto Systematic Literature Review (SLR)",
+        desc: "Fetches 300+ papers, AI-screens for relevance, generates PRISMA diagram, synthesizes findings."
+    },
+    {
+        icon: "✅",
+        title: "Citation Integrity Scanner",
+        desc: "Paste your manuscript draft — AI verifies every citation claim against your actual papers."
+    },
+    {
+        icon: "💡",
+        title: "Hypothesis Generator",
+        desc: "Surfaces novel research questions by connecting disparate findings across your project library."
+    },
+    {
+        icon: "🕸️",
+        title: "Knowledge Graph of Papers",
+        desc: "Visualize your entire research field as an interactive web — citations, supports, contradictions."
+    },
+    {
+        icon: "🎙️",
+        title: "Qualitative Interview Analysis",
+        desc: "Upload transcripts — AI performs thematic coding, builds code books and theme hierarchies."
+    },
+    {
+        icon: "📊",
+        title: "Statistical Testing Engine",
+        desc: "Validates your methodology and suggests the correct statistical tests for your dataset."
+    },
+    {
+        icon: "🧑‍⚖️",
+        title: "Reviewer Simulator",
+        desc: "Simulate 2–3 peer reviewers on your manuscript draft, each with distinct expert personas."
+    }
+];
 function ProFeaturesSection() {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
         id: "pro",
@@ -1047,14 +1088,14 @@ function ProFeaturesSection() {
             className: "max-w-[1200px] mx-auto",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "mb-12",
+                    className: "mb-14",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                             className: "text-[0.75rem] font-medium tracking-[0.1em] uppercase text-gold mb-3",
                             children: "Pro plan — $35/month"
                         }, void 0, false, {
                             fileName: "[project]/components/landing/pro-features.tsx",
-                            lineNumber: 10,
+                            lineNumber: 49,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -1063,7 +1104,7 @@ function ProFeaturesSection() {
                                 "For researchers who need",
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                     fileName: "[project]/components/landing/pro-features.tsx",
-                                    lineNumber: 12,
+                                    lineNumber: 51,
                                     columnNumber: 49
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("em", {
@@ -1071,169 +1112,128 @@ function ProFeaturesSection() {
                                     children: "every advantage"
                                 }, void 0, false, {
                                     fileName: "[project]/components/landing/pro-features.tsx",
-                                    lineNumber: 12,
+                                    lineNumber: 51,
                                     columnNumber: 55
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/landing/pro-features.tsx",
-                            lineNumber: 11,
+                            lineNumber: 50,
+                            columnNumber: 21
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                            className: "text-[1.05rem] font-light leading-[1.7] text-ink-muted mt-4 max-w-[520px]",
+                            children: "7 exclusive AI features only available on Pro. Unlimited usage — no credit tracking."
+                        }, void 0, false, {
+                            fileName: "[project]/components/landing/pro-features.tsx",
+                            lineNumber: 53,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/landing/pro-features.tsx",
-                    lineNumber: 9,
+                    lineNumber: 48,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "grid grid-cols-1 lg:grid-cols-2 gap-16 items-center",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
-                            className: "list-none flex flex-col",
+                    className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12",
+                    children: PRO_FEATURES.map((item, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
+                            initial: {
+                                opacity: 0,
+                                y: 16
+                            },
+                            whileInView: {
+                                opacity: 1,
+                                y: 0
+                            },
+                            viewport: {
+                                once: true
+                            },
+                            transition: {
+                                duration: 0.45,
+                                delay: i * 0.07
+                            },
+                            className: `bg-white border border-paper-border rounded-[16px] p-6 transition-all hover:translate-y-[-2px] hover:shadow-[0_8px_32px_rgba(13,15,18,0.06)] ${i === 3 ? "md:col-span-2 lg:col-span-1" : ""}`,
                             children: [
-                                {
-                                    icon: "🔬",
-                                    title: "Auto Systematic Literature Review (SLR)",
-                                    desc: "Fetches 300+ papers, AI-screens for relevance, generates PRISMA diagram, synthesizes findings."
-                                },
-                                {
-                                    icon: "✅",
-                                    title: "Citation Integrity Scanner",
-                                    desc: "Paste your manuscript draft — AI verifies every citation claim against your actual papers."
-                                },
-                                {
-                                    icon: "💡",
-                                    title: "Hypothesis Generator",
-                                    desc: "Surfaces novel research questions by connecting disparate findings across your project library."
-                                },
-                                {
-                                    icon: "📊",
-                                    title: "Statistical Testing Engine",
-                                    desc: "Validates your methodology and suggests the correct statistical tests for your dataset."
-                                }
-                            ].map((item, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                    className: "flex gap-4 items-start py-5 border-b border-paper-border last:border-0",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "w-9 h-9 rounded-[10px] bg-paper-mid flex-shrink-0 flex items-center justify-center text-lg",
-                                            children: item.icon
-                                        }, void 0, false, {
-                                            fileName: "[project]/components/landing/pro-features.tsx",
-                                            lineNumber: 25,
-                                            columnNumber: 33
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
-                                                    className: "text-[0.9rem] font-medium text-ink mb-1",
-                                                    children: item.title
-                                                }, void 0, false, {
-                                                    fileName: "[project]/components/landing/pro-features.tsx",
-                                                    lineNumber: 27,
-                                                    columnNumber: 37
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-[0.8rem] text-ink-muted leading-[1.55]",
-                                                    children: item.desc
-                                                }, void 0, false, {
-                                                    fileName: "[project]/components/landing/pro-features.tsx",
-                                                    lineNumber: 28,
-                                                    columnNumber: 37
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/components/landing/pro-features.tsx",
-                                            lineNumber: 26,
-                                            columnNumber: 33
-                                        }, this)
-                                    ]
-                                }, i, true, {
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "w-10 h-10 rounded-[10px] bg-paper-mid flex items-center justify-center text-xl mb-4",
+                                    children: item.icon
+                                }, void 0, false, {
                                     fileName: "[project]/components/landing/pro-features.tsx",
-                                    lineNumber: 24,
+                                    lineNumber: 68,
                                     columnNumber: 29
-                                }, this))
-                        }, void 0, false, {
-                            fileName: "[project]/components/landing/pro-features.tsx",
-                            lineNumber: 17,
-                            columnNumber: 21
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "bg-ink rounded-[18px] p-10 text-paper",
-                            children: [
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
+                                    className: "text-[0.95rem] font-medium text-ink mb-2 leading-[1.4]",
+                                    children: item.title
+                                }, void 0, false, {
+                                    fileName: "[project]/components/landing/pro-features.tsx",
+                                    lineNumber: 71,
+                                    columnNumber: 29
+                                }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "text-[0.7rem] font-medium tracking-[0.1em] uppercase text-gold-light mb-4",
+                                    className: "text-[0.82rem] text-ink-muted leading-[1.6]",
+                                    children: item.desc
+                                }, void 0, false, {
+                                    fileName: "[project]/components/landing/pro-features.tsx",
+                                    lineNumber: 72,
+                                    columnNumber: 29
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                    className: "inline-flex items-center gap-1 mt-4 px-2.5 py-1 rounded-full bg-[#1A3A5C]/8 text-[#1A3A5C] dark:bg-accent-light dark:text-accent-text text-[0.68rem] font-medium border border-paper-border",
                                     children: "Pro exclusive"
                                 }, void 0, false, {
                                     fileName: "[project]/components/landing/pro-features.tsx",
-                                    lineNumber: 35,
-                                    columnNumber: 25
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                    className: "text-[2rem] font-serif font-normal leading-tight text-paper mb-3",
-                                    children: "Knowledge Graph of Papers"
-                                }, void 0, false, {
-                                    fileName: "[project]/components/landing/pro-features.tsx",
-                                    lineNumber: 36,
-                                    columnNumber: 25
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "text-[0.875rem] text-paper/55 leading-[1.65] mb-8",
-                                    children: "Visualize your entire research field as an interactive web. edges represent citations, supports, or contradictions."
-                                }, void 0, false, {
-                                    fileName: "[project]/components/landing/pro-features.tsx",
-                                    lineNumber: 37,
-                                    columnNumber: 25
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex flex-wrap gap-2 mb-8",
-                                    children: [
-                                        'Force-directed D3.js',
-                                        'Theme Clustering',
-                                        'Contradiction Highlight',
-                                        'Timeline Filter'
-                                    ].map((tag)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                            className: "bg-white/10 border border-white/10 rounded-full px-3 py-1 text-[0.75rem] text-paper/70",
-                                            children: tag
-                                        }, tag, false, {
-                                            fileName: "[project]/components/landing/pro-features.tsx",
-                                            lineNumber: 42,
-                                            columnNumber: 33
-                                        }, this))
-                                }, void 0, false, {
-                                    fileName: "[project]/components/landing/pro-features.tsx",
-                                    lineNumber: 40,
-                                    columnNumber: 25
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "h-[120px] rounded-[10px] bg-white/5 flex items-center justify-center text-[0.75rem] text-white/20 border border-white/10",
-                                    children: "Graph Visualization UI"
-                                }, void 0, false, {
-                                    fileName: "[project]/components/landing/pro-features.tsx",
-                                    lineNumber: 47,
-                                    columnNumber: 25
+                                    lineNumber: 73,
+                                    columnNumber: 29
                                 }, this)
                             ]
-                        }, void 0, true, {
+                        }, item.title, true, {
                             fileName: "[project]/components/landing/pro-features.tsx",
-                            lineNumber: 34,
+                            lineNumber: 60,
+                            columnNumber: 25
+                        }, this))
+                }, void 0, false, {
+                    fileName: "[project]/components/landing/pro-features.tsx",
+                    lineNumber: 58,
+                    columnNumber: 17
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "flex flex-col sm:flex-row items-center gap-4",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                            href: "/signup",
+                            className: "inline-flex items-center justify-center px-8 py-3 rounded-full text-base font-medium border-[1.5px] border-transparent bg-accent text-white hover:opacity-90 transition-all",
+                            children: "Get Pro — $35/month"
+                        }, void 0, false, {
+                            fileName: "[project]/components/landing/pro-features.tsx",
+                            lineNumber: 81,
+                            columnNumber: 21
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                            href: "#pricing",
+                            className: "inline-flex items-center justify-center px-8 py-3 rounded-full text-base font-medium border-[1.5px] border-paper-border text-ink-muted hover:text-ink hover:border-ink-muted transition-all",
+                            children: "Compare plans"
+                        }, void 0, false, {
+                            fileName: "[project]/components/landing/pro-features.tsx",
+                            lineNumber: 87,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/landing/pro-features.tsx",
-                    lineNumber: 16,
+                    lineNumber: 80,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/landing/pro-features.tsx",
-            lineNumber: 8,
+            lineNumber: 47,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/landing/pro-features.tsx",
-        lineNumber: 7,
+        lineNumber: 46,
         columnNumber: 9
     }, this);
 }

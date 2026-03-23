@@ -36,11 +36,10 @@ export function useTokenRefresh() {
                 console.log('Token expiring soon, refreshing...')
 
                 // Request new token from backend
-                const response = await fetch(`/api/v1/auth/refresh?refresh_token=${user.refresh_token}`, {
+                const response = await fetch(`/api/v1/auth/refresh`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: user.refresh_token }),
                 })
 
                 if (response.ok) {
@@ -58,7 +57,7 @@ export function useTokenRefresh() {
                 // Token already expired
                 toast.error('Session expired. Please log in again.')
                 clearUser()
-                window.location.href = '/auth/login'
+                window.location.href = '/login'
             }
         } catch (error) {
             console.error('Error refreshing token:', error)

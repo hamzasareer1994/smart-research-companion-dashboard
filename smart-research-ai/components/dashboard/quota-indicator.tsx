@@ -1,134 +1,76 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useUserStore } from "@/lib/store"
-import { Progress } from "@/components/ui/progress"
-import { CreditCard, Zap, Info } from "lucide-react"
+import { CreditCard, TrendingDown } from "lucide-react"
 import { userService } from "@/services/user"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
+import Link from "next/link"
 
 export function QuotaIndicator() {
     const { user, updateCredits } = useUserStore()
-    const [quotas, setQuotas] = useState<any>(null)
-    const [timeLeft, setTimeLeft] = useState("")
 
     useEffect(() => {
         if (!user?.access_token) return
 
-        const fetchQuotas = async () => {
+        const fetchBalance = async () => {
             try {
                 const data = await userService.getQuotas(user.access_token)
-                setQuotas(data)
-
-                // Also update credits in store if different
-                // Assuming data_search is the main one we show here if we want but 
-                // user requested "AI Credits" (Abstracts/Insights)
+                if (data.credit_balance_cents !== undefined) {
+                    updateCredits(data.credit_balance_cents)
+                }
             } catch (error) {
-                console.error("Failed to fetch quotas", error)
+                console.error("Failed to fetch credit balance", error)
             }
         }
 
-        fetchQuotas()
-        const interval = setInterval(fetchQuotas, 60000) // Refresh every minute
-
+        fetchBalance()
+        const interval = setInterval(fetchBalance, 30000) // refresh every 30s
         return () => clearInterval(interval)
-    }, [user?.access_token])
+    }, [user?.access_token, updateCredits])
 
-    // Countdown Timer logic (until end of day or 24h cycle)
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const now = new Date()
-            const tomorrow = new Date()
-            tomorrow.setHours(24, 0, 0, 0)
-            const diff = tomorrow.getTime() - now.getTime()
+    const balanceCents = user?.credit_balance_cents ?? 0
+    const balanceDollars = balanceCents / 100
+    const totalDollars = 20
+    const percentage = Math.min(100, (balanceDollars / totalDollars) * 100)
+    const isPro = user?.tier === "pro"
 
-            const h = Math.floor(diff / (1000 * 60 * 60))
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-            const s = Math.floor((diff % (1000 * 60)) / 1000)
+    const barColor =
+        percentage > 50 ? "bg-teal" :
+        percentage > 20 ? "bg-yellow-500" :
+        "bg-red"
 
-            setTimeLeft(`${h}h ${m}m ${s}s`)
-        }, 1000)
-
-        return () => clearInterval(timer)
-    }, [])
-
-    // Calculate aggregate usage for "AI Credits" (Abstracts + Insights)
-    const abstractUsed = quotas?.abstract?.used ?? 0
-    const abstractLimit = quotas?.abstract?.limit ?? 3
-    const insightsUsed = quotas?.insights?.used ?? 0
-    const insightsLimit = quotas?.insights?.limit ?? 5
-
-    const totalUsed = abstractUsed + insightsUsed
-    const totalLimit = abstractLimit + insightsLimit
-
-    // Remaining % for the bar (100% means full bucket)
-    const remaining = Math.max(0, totalLimit - totalUsed)
-    const percentage = (remaining / totalLimit) * 100
-
-    const getStatusColor = (pct: number) => {
-        if (pct > 50) return "bg-primary"
-        if (pct > 20) return "bg-yellow-500"
-        return "bg-destructive"
+    if (isPro) {
+        return (
+            <div className="px-4 py-3 flex items-center gap-2 text-[0.75rem] text-ink3">
+                <CreditCard size={14} className="text-gold shrink-0" />
+                <span className="font-medium text-gold">Pro — Unlimited</span>
+            </div>
+        )
     }
 
     return (
-        <div className="px-4 py-4 space-y-3">
+        <div className="px-4 py-3 space-y-2">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Usage Highlights
-                    </span>
+                <div className="flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-wider text-ink4">
+                    <CreditCard size={12} />
+                    Credits
                 </div>
-                <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                <span className="text-[0.75rem] font-bold text-ink">${balanceDollars.toFixed(2)}</span>
             </div>
-
-            <div className="space-y-1.5">
-                <div className="flex justify-between items-end">
-                    <div className="flex flex-col">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span className="text-lg font-mono font-bold leading-none cursor-help">
-                                        {remaining} / {totalLimit}
-                                    </span>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="max-w-[200px]">
-                                    <div className="space-y-1 text-xs">
-                                        <p className="font-semibold">Daily AI Operations Limit</p>
-                                        <div className="space-y-0.5 text-muted-foreground">
-                                            <p>Abstracts: {abstractUsed}/{abstractLimit}</p>
-                                            <p>Insights: {insightsUsed}/{insightsLimit}</p>
-                                            <p className="font-medium text-foreground pt-1">Total: {totalUsed}/{totalLimit}</p>
-                                        </div>
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <span className="text-[9px] text-muted-foreground font-medium mt-1">
-                            Daily Limits • {totalLimit} Assigned ({user?.tier})
-                        </span>
-                    </div>
-                    <span className="text-[10px] font-bold text-primary">
-                        {percentage.toFixed(0)}% Left
-                    </span>
-                </div>
-                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div
-                        className={`h-full transition-all duration-500 ${getStatusColor(percentage)}`}
-                        style={{ width: `${percentage}%` }}
-                    />
-                </div>
+            <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                <div
+                    className={`h-full transition-all duration-500 ${barColor}`}
+                    style={{ width: `${percentage}%` }}
+                />
             </div>
-
-            <p className="text-[9px] text-muted-foreground leading-tight italic">
-                Daily limits resets in <span className="text-foreground font-medium tabular-nums">{timeLeft}</span>
-            </p>
+            <div className="flex items-center justify-between">
+                <span className="text-[0.65rem] text-ink4">${balanceDollars.toFixed(2)} / $20.00</span>
+                {balanceDollars < 5 && (
+                    <Link href="/dashboard/billing" className="text-[0.65rem] text-red font-medium flex items-center gap-0.5 hover:underline">
+                        <TrendingDown size={10} /> Low
+                    </Link>
+                )}
+            </div>
         </div>
     )
 }

@@ -92,9 +92,13 @@ export function DashboardHeader() {
                 </button>
 
                 {/* Notifications */}
-                <button className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-ink4 hover:bg-bg2 hover:text-ink transition-all relative">
+                <button
+                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-ink4 hover:bg-bg2 hover:text-ink transition-all relative"
+                    title="Notifications coming soon"
+                    disabled
+                    style={{ opacity: 0.5, cursor: 'default' }}
+                >
                     <Bell size={18} />
-                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red rounded-full border-2 border-surface animate-pulse" />
                 </button>
 
                 {/* User Nav */}

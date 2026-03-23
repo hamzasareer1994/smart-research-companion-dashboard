@@ -37,23 +37,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { projectService, ProjectResponse } from "@/services/project"
-import { useUserStore, UserTier } from "@/lib/store"
+import { useUserStore } from "@/lib/store"
 import { UpgradeModal } from "@/components/upgrade-modal"
 import { PaperDeleteModal } from "@/components/projects/paper-delete-modal"
 import { toast } from "sonner"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-const TIER_LIMITS: Record<UserTier, number> = {
-    student: 3,
-    professor: 15,
-    researcher: 999,
+const TIER_LIMITS: Record<string, number> = {
+    payg: 10,
+    pro: 999,
 }
 
 export default function ProjectsPage() {
     const { user } = useUserStore()
-    const userTier = user?.tier || "student"
-    const limit = TIER_LIMITS[userTier]
+    const userTier = user?.tier || "payg"
+    const limit = TIER_LIMITS[userTier] ?? 10
 
     const [projects, setProjects] = useState<ProjectResponse[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -65,6 +64,7 @@ export default function ProjectsPage() {
     const [isDeletePapersModalOpen, setIsDeletePapersModalOpen] = useState(false)
     const [selectedProjectForDelete, setSelectedProjectForDelete] = useState<ProjectResponse | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
+    const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest")
 
     useEffect(() => {
         fetchProjects()
@@ -113,10 +113,15 @@ export default function ProjectsPage() {
         }
     }
 
-    const filteredProjects = projects.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        p.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const filteredProjects = projects
+        .filter(p =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => {
+            const diff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            return sortOrder === "newest" ? diff : -diff
+        })
 
     const isAtLimit = projects.length >= limit
 
@@ -134,7 +139,7 @@ export default function ProjectsPage() {
                 </div>
                 <div className="flex items-center gap-4">
                     <Badge variant="outline" className="h-10 px-4 rounded-full border-border bg-bg2 text-ink4 font-bold uppercase tracking-wider text-[0.7rem]">
-                        {projects.length} / {userTier === 'researcher' ? '∞' : limit} Workspaces
+                        {projects.length} / {userTier === 'pro' ? '∞' : limit} Workspaces
                     </Badge>
                     <Button 
                         onClick={() => isAtLimit ? setIsUpgradeModalOpen(true) : setIsCreateDialogOpen(true)}
@@ -157,10 +162,14 @@ export default function ProjectsPage() {
                     />
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">
-                    <Button variant="outline" className="h-10 rounded-xl border-border flex-1 md:flex-none flex items-center gap-2">
-                        <Filter size={16} /> Sort by Date
+                    <Button
+                        variant="outline"
+                        className="h-10 rounded-xl border-border flex-1 md:flex-none flex items-center gap-2"
+                        onClick={() => setSortOrder(s => s === "newest" ? "oldest" : "newest")}
+                    >
+                        <Filter size={16} /> {sortOrder === "newest" ? "Newest First" : "Oldest First"}
                     </Button>
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-border bg-accent-light text-accent">
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-border bg-accent-light text-accent" disabled>
                         <LayoutGrid size={18} />
                     </Button>
                 </div>
@@ -308,8 +317,8 @@ export default function ProjectsPage() {
                 isOpen={isUpgradeModalOpen}
                 onOpenChange={setIsUpgradeModalOpen}
                 title="Workspace Capacity"
-                description={`The ${userTier} plan allows up to ${limit} research workspaces. Upgrade to Professional for higher limits.`}
-                requiredTier={userTier === 'student' ? 'professor' : 'researcher'}
+                description={`The PAYG plan allows up to ${limit} research workspaces. Upgrade to Pro for unlimited workspaces.`}
+                requiredTier="pro"
                 feature="unlimited thematic workspaces"
             />
 

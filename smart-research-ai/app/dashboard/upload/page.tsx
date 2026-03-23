@@ -17,7 +17,8 @@ import {
     Inbox
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useUserStore, UserTier } from "@/lib/store"
+import { Badge } from "@/components/ui/badge"
+import { useUserStore } from "@/lib/store"
 import { projectService, ProjectResponse } from "@/services/project"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -30,10 +31,9 @@ import {
 } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 
-const UPLOAD_LIMITS: Record<UserTier, number> = {
-    student: 10,
-    professor: 50,
-    researcher: 999,
+const UPLOAD_LIMITS: Record<string, number> = {
+    payg: 20,
+    pro: 999,
 }
 
 interface UploadingFile {
@@ -46,16 +46,18 @@ interface UploadingFile {
 
 export default function UploadPage() {
     const { user } = useUserStore()
-    const userTier = user?.tier || "student"
-    const limit = UPLOAD_LIMITS[userTier]
+    const userTier = user?.tier || "payg"
+    const limit = UPLOAD_LIMITS[userTier] ?? 20
 
     const [projects, setProjects] = useState<ProjectResponse[]>([])
     const [selectedProjectId, setSelectedProjectId] = useState<string>("")
     const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([])
     const [isDragActive, setIsDragActive] = useState(false)
+    const [mounted, setMounted] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
+        setMounted(true)
         const fetchProjects = async () => {
             try {
                 const data = await projectService.getProjects()
@@ -162,22 +164,26 @@ export default function UploadPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-[0.75rem] font-bold text-ink4 uppercase tracking-wider">Target Project</label>
-                                <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-                                    <SelectTrigger className="w-full h-11 bg-bg2 border-border text-[0.9rem] rounded-xl px-4">
-                                        <SelectValue placeholder="Chose a project..." />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-xl border-border shadow-2xl">
-                                        {projects.map(p => (
-                                            <SelectItem key={p.id} value={p.id} className="py-3 px-4 focus:bg-accent-light">
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-ink">{p.name}</span>
-                                                    <span className="text-[0.7rem] text-ink4">{p.paper_count || 0} existing papers</span>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                        <SelectItem value="new" className="text-gold font-bold">+ Create New Project</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                {mounted ? (
+                                    <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                                        <SelectTrigger className="w-full h-11 bg-bg2 border-border text-[0.9rem] rounded-xl px-4">
+                                            <SelectValue placeholder="Choose a project..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-border shadow-2xl">
+                                            {projects.map(p => (
+                                                <SelectItem key={p.id} value={p.id} className="py-3 px-4 focus:bg-accent-light">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-ink">{p.name}</span>
+                                                        <span className="text-[0.7rem] text-ink4">{p.paper_count || 0} existing papers</span>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                            <SelectItem value="new" className="text-gold font-bold">+ Create New Project</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <div className="w-full h-11 bg-bg2 border border-border rounded-xl px-4 flex items-center text-[0.9rem] text-ink3">Loading projects...</div>
+                                )}
                             </div>
                             <div className="flex items-end">
                                 <div className="bg-bg2/50 border border-border rounded-xl p-4 w-full flex items-center gap-3">

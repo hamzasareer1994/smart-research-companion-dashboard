@@ -46,8 +46,8 @@ export function HeroSection() {
                 <Link href="/signup" className="inline-flex items-center justify-center px-8 py-3 rounded-full text-base font-medium transition-all no-underline border-[1.5px] border-transparent bg-accent text-white hover:bg-[#0F2840]">
                     Start for free →
                 </Link>
-                <Link href="#" className="inline-flex items-center justify-center px-8 py-3 rounded-full text-base font-medium transition-all no-underline border-[1.5px] border-paper-border bg-transparent text-ink-muted hover:border-ink-muted hover:text-ink">
-                    See a demo
+                <Link href="#features" className="inline-flex items-center justify-center px-8 py-3 rounded-full text-base font-medium transition-all no-underline border-[1.5px] border-paper-border bg-transparent text-ink-muted hover:border-ink-muted hover:text-ink">
+                    See features
                 </Link>
             </motion.div>
 

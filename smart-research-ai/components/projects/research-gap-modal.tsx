@@ -35,19 +35,18 @@ export function ResearchGapModal({
     const [gaps, setGaps] = useState<any[]>([])
 
     // Tier-based paper limits
-    const tierLimits = {
-        student: 10,
-        researcher: 500,
-        professor: 100
+    const tierLimits: Record<string, number> = {
+        payg: 20,
+        pro: 500,
     }
-    const maxPapers = tierLimits[user?.tier as keyof typeof tierLimits] || 10
+    const maxPapers = tierLimits[user?.tier || "payg"] ?? 20
 
     const togglePaper = (paperId: string) => {
         setSelectedIds(prev => {
             if (prev.includes(paperId)) {
                 return prev.filter(id => id !== paperId)
             } else if (prev.length >= maxPapers) {
-                toast.error(`Maximum ${maxPapers} papers for ${user?.tier} tier`)
+                toast.error(`Maximum ${maxPapers} papers allowed for your plan`)
                 return prev
             } else {
                 return [...prev, paperId]

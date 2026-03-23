@@ -19,6 +19,7 @@ import {
     Paperclip
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ContextSelector } from "./context-selector"
@@ -51,7 +52,7 @@ export function GlobalChat() {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isContextModalOpen, setIsContextModalOpen] = useState(false)
     const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
     const [selectedPaperIds, setSelectedPaperIds] = useState<string[]>([])
@@ -206,7 +207,7 @@ export function GlobalChat() {
     }
 
     return (
-        <div className="flex h-[calc(100vh-100px)] w-full overflow-hidden bg-surface rounded-3xl border border-border shadow-xl relative animate-fade-up">
+        <div className="flex h-full w-full overflow-hidden bg-surface relative animate-fade-up">
             {/* History Sidebar */}
             <div className={cn(
                 "h-full border-r border-border bg-bg2/50 backdrop-blur-xl transition-all duration-300 flex flex-col",

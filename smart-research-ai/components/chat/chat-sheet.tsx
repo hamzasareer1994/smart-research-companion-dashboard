@@ -59,7 +59,7 @@ export function ChatSheet({
     const [isPaperSelectorOpen, setIsPaperSelectorOpen] = useState(false)
     const [selectedPaperIds, setSelectedPaperIds] = useState<string[]>([])
     const [isLoading, setIsLoading] = useState(false)
-    const isPremium = user?.tier === "professor" || user?.tier === "researcher"
+    const isPremium = user?.tier === "pro"
 
     const handleSend = async () => {
         if (!input.trim() || isLoading) return

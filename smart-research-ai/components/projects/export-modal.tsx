@@ -25,12 +25,12 @@ interface ExportModalProps {
 
 const EXPORT_OPTIONS = [
     { id: 'bibtex', title: 'BibTeX', desc: 'Standard LaTeX citations', icon: FileText, tier: 'free' },
-    { id: 'pdf', title: 'Research Report', desc: 'AI-generated summary PDF', icon: Layers, tier: 'professor' },
-    { id: 'slides', title: 'Presentation Slides', desc: 'Auto-generated PPTX', icon: Presentation, tier: 'professor' },
+    { id: 'pdf', title: 'Research Report', desc: 'AI-generated summary PDF', icon: Layers, tier: 'pro' },
+    { id: 'slides', title: 'Presentation Slides', desc: 'Auto-generated PPTX', icon: Presentation, tier: 'pro' },
     { id: 'ris', title: 'RIS / EndNote', desc: 'Reference manager format', icon: FileText, tier: 'free' },
 ]
 
-export function ExportModal({ projectName, paperCount, isOpen, onOpenChange, userTier = "student" }: ExportModalProps) {
+export function ExportModal({ projectName, paperCount, isOpen, onOpenChange, userTier = "payg" }: ExportModalProps) {
     const [selectedFormat, setSelectedFormat] = useState<string | null>(null)
     const [isExporting, setIsExporting] = useState(false)
 
@@ -39,14 +39,14 @@ export function ExportModal({ projectName, paperCount, isOpen, onOpenChange, use
         return option?.tier !== 'free'
     }
 
-    const canExport = selectedFormat && (userTier !== "student" || !isPremiumFormat(selectedFormat))
+    const canExport = selectedFormat && (userTier === "pro" || !isPremiumFormat(selectedFormat))
 
     const handleExport = async () => {
         if (!selectedFormat) return
 
         // Check tier restrictions
-        if (userTier === "student" && isPremiumFormat(selectedFormat)) {
-            toast.error("This export format requires Professor plan")
+        if (userTier !== "pro" && isPremiumFormat(selectedFormat)) {
+            toast.error("This export format requires Pro plan")
             return
         }
 
@@ -77,13 +77,13 @@ export function ExportModal({ projectName, paperCount, isOpen, onOpenChange, use
                             className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer hover:bg-muted/50 ${selectedFormat === option.id
                                     ? 'border-primary bg-primary/5'
                                     : 'border-transparent bg-muted/30'
-                                } ${userTier === "student" && option.tier !== 'free'
+                                } ${userTier !== "pro" && option.tier !== 'free'
                                     ? 'opacity-60 cursor-not-allowed hover:bg-muted/30'
                                     : ''
                                 }`}
                             onClick={() => {
-                                if (userTier === "student" && option.tier !== 'free') {
-                                    toast.info("📌 Professor Plan required for this export format")
+                                if (userTier !== "pro" && option.tier !== 'free') {
+                                    toast.info("Pro plan required for this export format")
                                 } else {
                                     setSelectedFormat(option.id)
                                 }

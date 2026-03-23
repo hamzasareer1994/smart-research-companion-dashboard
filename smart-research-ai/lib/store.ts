@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type UserTier = 'student' | 'professor' | 'researcher' | 'payg' | 'pro'
+export type UserTier = 'payg' | 'pro'
 
 export interface User {
     id: string
     email: string
     tier: UserTier | string
-    credits: number
-    credit_balance_cents?: number
+    credits: number              // alias for credit_balance_cents (cents)
+    credit_balance_cents: number // authoritative field (cents)
     access_token: string
     refresh_token?: string
     full_name?: string
@@ -58,9 +58,9 @@ interface UserState {
     isLoading: boolean
     searchHistory: string[]
 
-    setUser: (user: User) => void
+    setUser: (user: Partial<User> & { id: string; email: string; access_token: string }) => void
     clearUser: () => void
-    updateCredits: (newBalance: number) => void
+    updateCredits: (balance_cents: number) => void
     addSearchHistory: (query: string) => void
     clearSearchHistory: () => void
     setLoading: (loading: boolean) => void
@@ -77,26 +77,31 @@ export const useUserStore = create<UserState>()(
             setUser: (user) => set({
                 user: {
                     ...user,
-                    tier: user.tier || 'student',
-                    credits: user.credits ?? 0,
-                    credit_balance_cents: user.credit_balance_cents ?? (user.credits ? user.credits * 100 : 0)
-                },
+                    tier: user.tier || 'payg',
+                    credit_balance_cents: user.credit_balance_cents ?? 0,
+                    credits: user.credit_balance_cents ?? 0,
+                } as User,
                 isAuthenticated: true
             }),
+
             clearUser: () => set({ user: null, isAuthenticated: false }),
-            updateCredits: (balance) =>
+
+            // balance_cents is the raw value from backend (e.g. 2000 = $20.00)
+            updateCredits: (balance_cents) =>
                 set((state) => ({
-                    user: state.user ? { 
-                        ...state.user, 
-                        credits: balance,
-                        credit_balance_cents: balance * 100 
+                    user: state.user ? {
+                        ...state.user,
+                        credits: balance_cents,
+                        credit_balance_cents: balance_cents,
                     } : null
                 })),
+
             addSearchHistory: (query) =>
                 set((state) => {
                     const newHistory = [query, ...state.searchHistory.filter(q => q !== query)].slice(0, 10)
                     return { searchHistory: newHistory }
                 }),
+
             clearSearchHistory: () => set({ searchHistory: [] }),
             setLoading: (loading) => set({ isLoading: loading }),
         }),

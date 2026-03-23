@@ -23,9 +23,9 @@ export default function DashboardLayout({
                 toggleCollapse={() => setIsCollapsed(!isCollapsed)} 
             />
             
-            <div className="main flex flex-col flex-1 min-w-0 h-screen">
+            <div className="main flex flex-col flex-1 min-w-0 h-screen overflow-hidden">
                 <DashboardHeader />
-                <main className="content flex-1 overflow-y-auto">
+                <main className="content flex-1 overflow-y-auto min-h-0">
                     {children}
                 </main>
             </div>

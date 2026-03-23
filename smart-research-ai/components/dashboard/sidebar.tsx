@@ -10,7 +10,6 @@ import { useEffect, useState } from "react"
 import {
     LayoutGrid,
     Briefcase,
-    Library,
     MessageSquare,
     Search as SearchIcon,
     Network,
@@ -20,7 +19,16 @@ import {
     CreditCard,
     ChevronLeft,
     ChevronRight,
-    Menu
+    Menu,
+    BookOpen,
+    Crown,
+    Receipt,
+    Upload,
+    FlaskConical,
+    TrendingUp,
+    Database,
+    GitCompare,
+    CalendarDays,
 } from "lucide-react"
 import {
     Select,
@@ -45,8 +53,10 @@ export function Sidebar({ isCollapsed, toggleCollapse, className }: SidebarProps
     const pathname = usePathname()
     const { user } = useUserStore()
     const [projects, setProjects] = useState<ProjectResponse[]>([])
+    const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
+        setMounted(true)
         const fetchProjects = async () => {
             try {
                 const data = await projectService.getProjects()
@@ -62,24 +72,34 @@ export function Sidebar({ isCollapsed, toggleCollapse, className }: SidebarProps
         { label: "Workspace", type: "label" },
         { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
         { icon: Briefcase, label: "Projects", href: "/dashboard/projects", badge: projects.length || null },
-        { icon: Library, label: "Paper Library", href: "/dashboard/library" },
         { icon: MessageSquare, label: "AI Chat", href: "/dashboard/chat" },
         { icon: SearchIcon, label: "Search Papers", href: "/dashboard/search" },
-        
-        { label: "AI Tools", type: "label" },
+        { icon: Upload, label: "Upload PDFs", href: "/dashboard/upload" },
+
+        { label: "PAYG Tools", type: "label" },
         { icon: Network, label: "Literature Map", href: "/dashboard/lit-map" },
+        { icon: FlaskConical, label: "Experiment Planner", href: "/dashboard/experiment" },
+        { icon: TrendingUp, label: "Trend Predictor", href: "/dashboard/trends" },
+        { icon: Database, label: "Dataset Discovery", href: "/dashboard/datasets" },
+        { icon: GitCompare, label: "Contradiction Finder", href: "/dashboard/contradictions" },
         { icon: PenTool, label: "Writing Assistant", href: "/dashboard/writing" },
+        { icon: FileText, label: "Grant Proposals", href: "/dashboard/grants" },
+        { icon: BookOpen, label: "Smart Reader", href: "/dashboard/reader" },
+        { icon: CalendarDays, label: "Timeline Planner", href: "/dashboard/timeline" },
+
+        { label: "Pro Tools", type: "label" },
         { icon: Zap, label: "SLR Engine", href: "/dashboard/slr", premium: true },
-        { icon: FileText, label: "Smart Reader", href: "/dashboard/reader" },
-        
+        { icon: Crown, label: "Pro Benefits", href: "/dashboard/pro" },
+
         { label: "Account", type: "label" },
         { icon: CreditCard, label: "Billing", href: "/dashboard/billing" },
+        { icon: Receipt, label: "Activity Logs", href: "/dashboard/logs" },
     ]
 
-    const creditBalance = (user?.credit_balance_cents || 0) / 100
-    const usedCredits = 720 // This should come from an API normally
-    const totalCredits = 2000
-    const creditPercentage = (usedCredits / totalCredits) * 100
+    const creditBalanceCents = user?.credit_balance_cents ?? 0
+    const creditBalance = creditBalanceCents / 100
+    const totalCents = 2000 // $20 = 2000 cents
+    const creditPercentage = Math.min(100, (creditBalanceCents / totalCents) * 100)
 
     return (
         <aside className={cn(
@@ -105,7 +125,7 @@ export function Sidebar({ isCollapsed, toggleCollapse, className }: SidebarProps
                 </button>
             </div>
 
-            {!isCollapsed && (
+            {!isCollapsed && mounted && (
                 <div className="project-picker p-3 border-b border-border">
                     <Select>
                         <SelectTrigger className="w-full h-8 bg-bg2 border-border text-[0.8rem] rounded-md px-2.5">
@@ -177,7 +197,7 @@ export function Sidebar({ isCollapsed, toggleCollapse, className }: SidebarProps
                             />
                         </div>
                         <div className="text-[0.68rem] text-ink4">
-                            {usedCredits} / {totalCredits} credits used
+                            ${creditBalance.toFixed(2)} of $20.00 remaining
                         </div>
                         <Link href="/dashboard/billing" className="credits-upgrade block mt-2 text-center bg-gold text-white p-1.5 rounded-md text-[0.75rem] font-medium hover:opacity-90 transition-opacity">
                             Upgrade to Pro →

@@ -18,7 +18,7 @@ interface UpgradeModalProps {
     onOpenChange: (open: boolean) => void
     title?: string
     description?: string
-    requiredTier?: UserTier
+    requiredTier?: UserTier | string
     feature?: string
 }
 
@@ -26,8 +26,8 @@ export function UpgradeModal({
     isOpen,
     onOpenChange,
     title = "Upgrade Your Plan",
-    description = "You've reached the limit for your current plan. Upgrade to continue your research without interruptions.",
-    requiredTier = "professor",
+    description = "You've reached the limit for your current plan. Upgrade to Pro to continue your research without interruptions.",
+    requiredTier = "pro",
     feature = "This feature"
 }: UpgradeModalProps) {
     return (
@@ -75,8 +75,8 @@ export function UpgradeModal({
                             asChild
                             className="flex-1 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all font-semibold"
                         >
-                            <Link href="/pricing" onClick={() => onOpenChange(false)}>
-                                View Pricing
+                            <Link href="/dashboard/pro" onClick={() => onOpenChange(false)}>
+                                View Pro Benefits
                             </Link>
                         </Button>
                     </DialogFooter>

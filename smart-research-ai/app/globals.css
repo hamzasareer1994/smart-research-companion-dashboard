@@ -8,7 +8,7 @@
   --font-serif: var(--font-serif);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  
+
   --color-bg: var(--bg);
   --color-bg2: var(--bg2);
   --color-bg3: var(--bg3);
@@ -16,6 +16,16 @@
   --color-surface2: var(--surface2);
   --color-border-custom: var(--border-custom);
   --color-border2: var(--border2);
+
+  /* Landing page color aliases */
+  --color-paper: var(--bg);
+  --color-paper-mid: var(--bg2);
+  --color-paper-border: var(--border-custom);
+  --color-ink-muted: var(--ink3);
+  --color-ink-faint: var(--ink4);
+  --color-accent-bright: var(--accent);
+  --color-gold-light: var(--gold-bg);
+  --color-teal-light: var(--teal-bg);
   --color-ink: var(--ink);
   --color-ink2: var(--ink2);
   --color-ink3: var(--ink3);

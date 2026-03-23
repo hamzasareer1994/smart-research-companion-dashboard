@@ -24,7 +24,7 @@ import { toast } from "sonner"
 import Cookies from "js-cookie"
 import { authService } from "@/services/auth"
 
-import { useUserStore, User, UserTier } from "@/lib/store"
+import { useUserStore } from "@/lib/store"
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false)
@@ -56,14 +56,15 @@ export default function LoginPage() {
             })
 
             // Initialize Store
-            const user: User = {
+            setUser({
                 id: response.user_id,
                 email: response.email,
-                tier: response.tier as UserTier,
-                credits: response.credits,
-                access_token: response.access_token
-            }
-            setUser(user)
+                tier: response.tier || 'payg',
+                access_token: response.access_token,
+                refresh_token: response.refresh_token,
+                credit_balance_cents: response.credit_balance_cents ?? 0,
+                credits: response.credit_balance_cents ?? 0,
+            })
 
             toast.success("Login successful", {
                 description: `Welcome back, ${response.email.split('@')[0]}!`,

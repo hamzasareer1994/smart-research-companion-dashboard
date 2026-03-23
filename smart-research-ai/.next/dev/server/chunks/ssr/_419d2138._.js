@@ -75,6 +75,14 @@ const userService = {
             throw new Error(message);
         }
         return response.json();
+    },
+    async getTransactions () {
+        const response = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["apiClient"])("/api/v1/user/transactions");
+        if (!response.ok) {
+            const message = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getErrorMessage"])(response);
+            throw new Error(message);
+        }
+        return response.json();
     }
 };
 }),
@@ -136,7 +144,7 @@ function DashboardOverview() {
                 ]);
                 setProjects(projectData);
                 if (quotaData.credit_balance_cents !== undefined) {
-                    __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useUserStore"].getState().updateCredits(quotaData.credit_balance_cents);
+                    __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useUserStore"].getState().updateCredits(quotaData.credit_balance_cents); // raw cents
                 }
                 setStats({
                     projects: projectData.length,
@@ -723,7 +731,7 @@ function DashboardOverview() {
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                                        href: "/dashboard/library",
+                                        href: "/dashboard/projects",
                                         className: "action-btn bg-surface border border-border rounded-xl p-4 flex items-center gap-4 hover:border-purple hover:shadow-md transition-all group",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {

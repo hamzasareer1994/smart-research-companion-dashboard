@@ -3,19 +3,19 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-    ArrowLeft, 
-    FileText, 
-    LayoutGrid, 
-    Table as TableIcon, 
-    BarChart3, 
-    PenLine, 
-    MoreVertical, 
-    Share2, 
-    Download, 
-    Sparkles, 
-    Plus, 
-    MessageSquare, 
+import {
+    ArrowLeft,
+    FileText,
+    LayoutGrid,
+    Table as TableIcon,
+    BarChart3,
+    PenLine,
+    MoreVertical,
+    Share2,
+    Download,
+    Sparkles,
+    Plus,
+    MessageSquare,
     Layers,
     ChevronRight,
     Search,
@@ -24,7 +24,10 @@ import {
     Trash2,
     BookOpen,
     Quote,
-    ExternalLink
+    ExternalLink,
+    Settings,
+    User,
+    Calendar
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -75,7 +78,7 @@ export default function ProjectDetailPage() {
     const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false)
 
     const { user } = useUserStore()
-    const userTier = user?.tier || "student"
+    const userTier = user?.tier || "payg"
 
     useEffect(() => {
         if (projectId) {
@@ -173,19 +176,33 @@ export default function ProjectDetailPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Button variant="outline" className="rounded-full h-11 border-border px-6 hover:bg-bg2 transition-all flex items-center gap-2">
-                            <Download size={18} /> Export Workspace
-                        </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full border border-border"><MoreVertical size={20} /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="rounded-2xl border-border shadow-2xl p-2">
-                                <DropdownMenuItem className="rounded-xl py-3 px-4 focus:bg-accent-light text-ink font-bold flex items-center gap-2">
-                                    <Settings className="w-4 h-4" /> Project Settings
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        const text = [project.name, project.description, ...(project.papers || []).map((p: any) => `${p.title} — ${p.authors?.[0]} (${p.year})`)].join("\n")
+                                        const blob = new Blob([text], { type: "text/plain" })
+                                        const url = URL.createObjectURL(blob)
+                                        const a = document.createElement("a"); a.href = url; a.download = `${project.name}.txt`; a.click()
+                                    }}
+                                    className="rounded-xl py-3 px-4 focus:bg-accent-light text-ink font-bold flex items-center gap-2 cursor-pointer"
+                                >
+                                    <Download className="w-4 h-4" /> Export Workspace
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="my-1" />
-                                <DropdownMenuItem className="rounded-xl py-3 px-4 focus:bg-red text-ink4 hover:text-white flex items-center gap-2">
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        if (!confirm(`Delete "${project.name}"? This cannot be undone.`)) return
+                                        projectService.deleteProject(projectId).then(() => {
+                                            toast.success("Project deleted")
+                                            router.push("/dashboard/projects")
+                                        }).catch(() => toast.error("Delete failed"))
+                                    }}
+                                    className="rounded-xl py-3 px-4 focus:bg-red-bg text-red-500 flex items-center gap-2 cursor-pointer"
+                                >
                                     <Trash2 className="w-4 h-4" /> Delete Project
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -201,15 +218,17 @@ export default function ProjectDetailPage() {
                     { label: "Top Researcher", val: stats.topAuthor.split(",")[0], color: "teal", icon: User },
                     { label: "Avg Pub Year", val: stats.avgYear || "-", color: "gold", icon: Calendar },
                     { label: "Total Ref. Count", val: stats.totalCitations, color: "ink", icon: Quote },
-                ].map((s, i) => (
+                ].map((s, i) => {
+                    const SIcon = s.icon
+                    return (
                     <div key={i} className="bg-surface border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3 mb-2 text-ink4">
-                            <s.icon size={16} className={cn("text-" + s.color)} />
+                            <SIcon size={16} className={cn("text-" + s.color)} />
                             <span className="text-[0.65rem] font-black uppercase tracking-widest">{s.label}</span>
                         </div>
                         <div className="text-2xl font-serif text-ink truncate">{s.val}</div>
                     </div>
-                ))}
+                )})}
             </div>
 
             {/* Tabbed Interaction Area */}
@@ -350,7 +369,7 @@ export default function ProjectDetailPage() {
                             <h3 className="text-3xl font-serif text-ink italic leading-tight">Visualizing Knowledge <em className="italic">Networks</em></h3>
                             <p className="text-ink3 text-[1rem] max-w-sm mx-auto mt-4">Discover citation threads and researcher connections within your indexed papers.</p>
                         </div>
-                        <Badge className="bg-gold-bg text-gold border-gold/10 font-bold px-4 py-1">PROFESSOR TIER FEATURE</Badge>
+                        <Badge className="bg-gold-bg text-gold border-gold/10 font-bold px-4 py-1">PRO FEATURE</Badge>
                     </div>
                 </TabsContent>
             </Tabs>
@@ -380,8 +399,8 @@ export default function ProjectDetailPage() {
                                 <Button className="flex-1 h-12 rounded-xl bg-accent text-white font-bold" onClick={() => { setIsChatOpen(true); setIsInsightsModalOpen(false); }}>
                                     Launch Deep Reasoning
                                 </Button>
-                                <Button variant="outline" className="flex-1 h-12 rounded-xl border-border font-bold" asChild>
-                                    <a href="#" target="_blank" rel="noopener noreferrer"><ExternalLink size={16} className="mr-2" /> Original Source</a>
+                                <Button variant="outline" className="flex-1 h-12 rounded-xl border-border font-bold" onClick={() => setIsInsightsModalOpen(false)}>
+                                    Close
                                 </Button>
                             </div>
                         </div>

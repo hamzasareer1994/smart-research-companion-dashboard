@@ -3,15 +3,14 @@
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
-    Briefcase, 
-    FileText, 
-    Zap, 
-    CreditCard, 
-    MoreHorizontal, 
-    ArrowUpRight, 
-    Plus, 
-    Search, 
-    MessageSquare, 
+    Briefcase,
+    FileText,
+    Zap,
+    CreditCard,
+    ArrowUpRight,
+    Plus,
+    Search,
+    MessageSquare,
     Library,
     Clock,
     Sparkles
@@ -44,7 +43,7 @@ export default function DashboardOverview() {
 
                 setProjects(projectData)
                 if (quotaData.credit_balance_cents !== undefined) {
-                    useUserStore.getState().updateCredits(quotaData.credit_balance_cents)
+                    useUserStore.getState().updateCredits(quotaData.credit_balance_cents)  // raw cents
                 }
                 setStats({
                     projects: projectData.length,
@@ -96,20 +95,19 @@ export default function DashboardOverview() {
 
             {/* Metrics grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {metrics.map((m, idx) => (
+                {metrics.map((m, idx) => {
+                    const MIcon = m.icon
+                    return (
                     <div key={idx} className="metric-card bg-surface border border-border rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-accent/30 transition-all group">
                         <div className="flex justify-between items-start mb-4">
                             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", m.bg, m.color)}>
-                                <m.icon size={20} />
+                                <MIcon size={20} />
                             </div>
-                            <button className="text-ink4 hover:text-ink transition-colors">
-                                <MoreHorizontal size={18} />
-                            </button>
                         </div>
                         <div className="text-[0.8rem] font-bold uppercase tracking-wider text-ink4 mb-1">{m.label}</div>
                         <div className="text-2xl font-bold text-ink">{m.value}</div>
                     </div>
-                ))}
+                )})}
             </div>
 
             {/* Main content sections */}
@@ -118,7 +116,7 @@ export default function DashboardOverview() {
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-serif text-ink">Recent Research Activity</h2>
-                        <Link href="/dashboard/activity" className="text-[0.8rem] text-gold font-medium hover:underline flex items-center gap-1">
+                        <Link href="/dashboard/logs" className="text-[0.8rem] text-gold font-medium hover:underline flex items-center gap-1">
                             View History <ArrowUpRight size={14} />
                         </Link>
                     </div>
@@ -195,7 +193,7 @@ export default function DashboardOverview() {
                             </div>
                         </Link>
 
-                        <Link href="/dashboard/library" className="action-btn bg-surface border border-border rounded-xl p-4 flex items-center gap-4 hover:border-purple hover:shadow-md transition-all group">
+                        <Link href="/dashboard/projects" className="action-btn bg-surface border border-border rounded-xl p-4 flex items-center gap-4 hover:border-purple hover:shadow-md transition-all group">
                             <div className="w-10 h-10 rounded-lg bg-purple-bg text-purple flex items-center justify-center transition-transform group-hover:scale-110">
                                 <Library size={20} />
                             </div>

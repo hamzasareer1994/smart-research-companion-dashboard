@@ -202,9 +202,7 @@ export function AIInsights({ projectId, papers, projectTitle }: AIInsightsProps)
                         Research Gaps
                     </CardTitle>
                     <CardDescription className="text-xs">
-                        {user?.tier === 'student' && 'Analyze up to 10 papers'}
-                        {user?.tier === 'researcher' && 'Analyze up to 500 papers'}
-                        {user?.tier === 'professor' && 'Analyze up to 100 papers'}
+                        {user?.tier === 'pro' ? 'Unlimited paper analysis' : 'Analyze papers (credits apply)'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

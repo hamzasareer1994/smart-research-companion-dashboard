@@ -2,23 +2,24 @@
 
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-    Search as SearchIcon, 
-    Filter, 
-    LayoutGrid, 
-    List, 
-    History, 
-    ChevronRight, 
-    Quote, 
-    ExternalLink, 
-    Plus, 
+import {
+    Search as SearchIcon,
+    Filter,
+    LayoutGrid,
+    List,
+    History,
+    ChevronRight,
+    Quote,
+    ExternalLink,
+    Plus,
     Check,
     Library,
     ArrowRight,
     FileText,
     Download,
     X,
-    Info
+    Info,
+    Loader2
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
