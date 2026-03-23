@@ -1,0 +1,23 @@
+{
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/dashboard/billing/page": "app/dashboard/billing/page.js",
+  "/dashboard/chat/page": "app/dashboard/chat/page.js",
+  "/dashboard/contradictions/page": "app/dashboard/contradictions/page.js",
+  "/dashboard/datasets/page": "app/dashboard/datasets/page.js",
+  "/dashboard/experiment/page": "app/dashboard/experiment/page.js",
+  "/dashboard/grants/page": "app/dashboard/grants/page.js",
+  "/dashboard/lit-map/page": "app/dashboard/lit-map/page.js",
+  "/dashboard/logs/page": "app/dashboard/logs/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/pro/page": "app/dashboard/pro/page.js",
+  "/dashboard/projects/page": "app/dashboard/projects/page.js",
+  "/dashboard/reader/page": "app/dashboard/reader/page.js",
+  "/dashboard/search/page": "app/dashboard/search/page.js",
+  "/dashboard/slr/page": "app/dashboard/slr/page.js",
+  "/dashboard/timeline/page": "app/dashboard/timeline/page.js",
+  "/dashboard/trends/page": "app/dashboard/trends/page.js",
+  "/dashboard/upload/page": "app/dashboard/upload/page.js",
+  "/dashboard/writing/page": "app/dashboard/writing/page.js",
+  "/page": "app/page.js"
+}

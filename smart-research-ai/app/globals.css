@@ -1,0 +1,222 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --color-bg: var(--bg);
+  --color-bg2: var(--bg2);
+  --color-bg3: var(--bg3);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
+  --color-border-custom: var(--border-custom);
+  --color-border2: var(--border2);
+
+  /* Landing page color aliases */
+  --color-paper: var(--bg);
+  --color-paper-mid: var(--bg2);
+  --color-paper-border: var(--border-custom);
+  --color-ink-muted: var(--ink3);
+  --color-ink-faint: var(--ink4);
+  --color-accent-bright: var(--accent);
+  --color-gold-light: var(--gold-bg);
+  --color-teal-light: var(--teal-bg);
+  --color-ink: var(--ink);
+  --color-ink2: var(--ink2);
+  --color-ink3: var(--ink3);
+  --color-ink4: var(--ink4);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-text: var(--accent-text);
+  --color-gold: var(--gold);
+  --color-gold-bg: var(--gold-bg);
+  --color-gold-text: var(--gold-text);
+  --color-teal: var(--teal);
+  --color-teal-bg: var(--teal-bg);
+  --color-teal-text: var(--teal-text);
+  --color-red: var(--red);
+  --color-red-bg: var(--red-bg);
+  --color-red-text: var(--red-text);
+  --color-purple: var(--purple);
+  --color-purple-bg: var(--purple-bg);
+  --color-purple-text: var(--purple-text);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent-ui: var(--accent-ui);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius-xl);
+}
+
+:root {
+  --bg: #F5F3EE;
+  --bg2: #EDEAE2;
+  --bg3: #E4E0D6;
+  --surface: #FFFFFF;
+  --surface2: #F9F8F5;
+  --border-custom: #D8D4CB;
+  --border2: #C8C4BB;
+  --ink: #0D0F12;
+  --ink2: #3A3D47;
+  --ink3: #6B6F7A;
+  --ink4: #9CA0AD;
+  --accent: #1A3A5C;
+  --accent-light: #EBF0F7;
+  --accent-text: #1A3A5C;
+  --gold: #C4842A;
+  --gold-bg: #FDF3E0;
+  --gold-text: #7A4E0D;
+  --teal: #1D8C72;
+  --teal-bg: #D8F4EC;
+  --teal-text: #0A5C49;
+  --red: #C0392B;
+  --red-bg: #FBEAEA;
+  --red-text: #8B1A1A;
+  --purple: #6B4FB5;
+  --purple-bg: #EDE8F9;
+  --purple-text: #3D2880;
+
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--bg2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--bg2);
+  --muted-foreground: var(--ink3);
+  --accent-ui: var(--bg2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--red);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--border-custom);
+  --input: var(--border-custom);
+  --ring: var(--accent);
+  
+  --radius: 8px;
+  --radius-xl: 20px;
+}
+
+.dark {
+  --bg: #0F1117;
+  --bg2: #161820;
+  --bg3: #1D2030;
+  --surface: #1A1D27;
+  --surface2: #20232E;
+  --border-custom: #2A2D3A;
+  --border2: #353848;
+  --ink: #F0EEE8;
+  --ink2: #C8C5BE;
+  --ink3: #888BA0;
+  --ink4: #555870;
+  --accent: #4A8FD4;
+  --accent-light: #162035;
+  --accent-text: #7AB8E8;
+  --gold: #E5A040;
+  --gold-bg: #2A1E08;
+  --gold-text: #E5A040;
+  --teal: #2DB892;
+  --teal-bg: #0A2A22;
+  --teal-text: #2DB892;
+  --red: #E05252;
+  --red-bg: #2A0F0F;
+  --red-text: #E05252;
+  --purple: #9B7FE0;
+  --purple-bg: #1A1230;
+  --purple-text: #9B7FE0;
+
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--bg2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--bg2);
+  --muted-foreground: var(--ink3);
+  --accent-ui: var(--bg2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--red);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--border-custom);
+  --input: var(--border-custom);
+  --ring: var(--accent);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    line-height: 1.6;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer utilities {
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .serif-italic {
+    @apply font-serif italic;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scrollLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s ease both;
+}
+
+.animate-scroll-left {
+  animation: scrollLeft 20s linear infinite;
+}

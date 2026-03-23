@@ -1,0 +1,133 @@
+{
+  "app": {
+    "[project]/app/(auth)/login/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/_not-found/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/billing/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/chat/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/contradictions/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/datasets/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/experiment/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/grants/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/lit-map/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/logs/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/pro/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/projects/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/reader/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/search/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/slr/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/timeline/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/trends/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/upload/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/dashboard/writing/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ],
+    "[project]/app/page": [
+      "static/media/7ebf22b5a21034f8-s.p.d8bad3ab.woff2",
+      "static/media/e41d5df559864f9e-s.p.380d09ea.woff2",
+      "static/media/5c285b27cdda1fe8-s.p.a62025f2.woff2",
+      "static/media/70bc3e132a0a741e-s.p.15008bfb.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}
